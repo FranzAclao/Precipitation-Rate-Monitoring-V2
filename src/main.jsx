@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import App from './App.jsx' // Your Dashboard
-import Data from './pages/data.jsx'
+import Data from './pages/data_logs/dataV2.jsx'
 import Analysis from './pages/analysis.jsx'
 import './index.css'
 

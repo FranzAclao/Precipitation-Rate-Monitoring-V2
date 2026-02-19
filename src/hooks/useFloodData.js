@@ -11,6 +11,10 @@ export function useFloodData() {
     node1History: [], 
     node2History: [], 
     allLogs: [],
+
+    node1Logs: [],
+    node2Logs: [],
+
     lastUpdate: "--",
     loading: true,
   });
@@ -70,6 +74,8 @@ export function useFloodData() {
           timestamp: n2.Timestamp
         },
         allLogs: mergedLogs,
+        node1Logs: [...logCache.node1].reverse(), 
+        node2Logs: [...logCache.node2].reverse(),
         history: logCache.node2.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
         node1History: logCache.node1.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
         node2History: logCache.node2.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
@@ -84,8 +90,15 @@ export function useFloodData() {
         timestamp: v.Timestamp,
         fullDate: v.Timestamp.split(" ")[0],
         time: new Date(v.Timestamp.replace(" ", "T")).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        rain: parseFloat(v.RainRate || 0), // Standardizing property name to 'rain'
-        level: parseFloat(v.WaterLevel || 0),
+        
+        // Original properties for your main dashboard charts
+        rain: parseFloat(v.RainRate || v.rainRate || 0), 
+        level: parseFloat(v.WaterLevel || v.waterLevel || v.Level || v.level || 0),
+        
+        // Fixed properties for your Data Logs table (checks multiple possible key spellings)
+        rainRate: parseFloat(v.RainRate || v.rainRate || 0), 
+        waterLevel: parseFloat(v.WaterLevel || v.waterLevel || v.Level || v.level || 0),
+        status: v.LevelLabel || v.levelLabel || v.Status || "SAFE",
         nodeId
       }));
     };
