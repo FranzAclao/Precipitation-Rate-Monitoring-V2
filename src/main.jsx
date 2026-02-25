@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import App from './App.jsx' // Your Dashboard
-import Data from './pages/data.jsx'
-import Analysis from './pages/analysis.jsx'
+import App from './pages/dashboard/dashboard.jsx' // Your Dashboard
+import Data from './pages/datalogs/data.jsx'
+import Analysis from './pages/analysis/analysis.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
