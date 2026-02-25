@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useFloodData } from '../hooks/useFloodData'; 
 import { Download } from 'lucide-react'; 
 
 export default function Data() {
-  const { node1Logs, node2Logs, loading } = useFloodData();
+  // Pull standardized allLogs from the hook
+  const { allLogs, loading } = useFloodData();
   const [activeTab, setActiveTab] = useState('node2');
 
-  const currentLogs = activeTab === 'node1' ? node1Logs : node2Logs;
+  // Filter logs based on the active tab and nodeId
+  const currentLogs = useMemo(() => {
+    return (allLogs || []).filter(log => log.nodeId === activeTab);
+  }, [allLogs, activeTab]);
 
   const downloadCSV = () => {
     if (currentLogs.length === 0) return;
@@ -15,9 +19,9 @@ export default function Data() {
     
     const csvRows = currentLogs.map(log => [
       `"${log.timestamp}"`, 
-      log.rainRate,
-      log.waterLevel,
-      `"${log.status}"`
+      log.rain || 0, // Updated to standardized 'rain' key
+      log.level || 0, // Updated to standardized 'level' key
+      `"${log.status || 'N/A'}"`
     ]);
 
     const csvContent = [headers, ...csvRows].map(e => e.join(",")).join("\n");
@@ -42,7 +46,6 @@ export default function Data() {
   }
 
   return (
-    /* Main Page Transition */
     <div className="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ease-in-out">
       <div className="mb-8 flex justify-between items-end">
         <div>
@@ -83,9 +86,6 @@ export default function Data() {
         </button>
       </div>
 
-      {/* Data Table Container 
-          The 'key' attribute ensures a fresh animation every time the tab changes 
-      */}
       <div 
         key={activeTab}
         className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
@@ -110,15 +110,15 @@ export default function Data() {
               {currentLogs.map((log, index) => (
                 <tr key={index} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                   <td className="p-4 font-mono text-slate-500">{log.timestamp}</td>
-                  <td className="p-4">{log.rainRate} mm/hr</td>
-                  <td className="p-4">{log.waterLevel} cm</td>
+                  <td className="p-4">{log.rain} mm/hr</td> {/* Use 'rain' key */}
+                  <td className="p-4">{log.level} cm</td> {/* Use 'level' key */}
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      log.status.toLowerCase() === 'safe' ? 'bg-emerald-100 text-emerald-700' :
-                      log.status.toLowerCase() === 'warning' || log.status.toLowerCase() === 'caution' ? 'bg-amber-100 text-amber-700' :
+                      log.status?.toLowerCase() === 'safe' ? 'bg-emerald-100 text-emerald-700' :
+                      log.status?.toLowerCase() === 'warning' || log.status?.toLowerCase() === 'caution' ? 'bg-amber-100 text-amber-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {log.status}
+                      {log.status || 'N/A'}
                     </span>
                   </td>
                 </tr>
