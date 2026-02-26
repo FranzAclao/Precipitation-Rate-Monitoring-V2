@@ -10,12 +10,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       {/* GLOBAL NAVIGATION BAR */}
-      <div className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md">
+      {/* Changed bg-slate-900 to bg-blue-600 for that Azure Blue look */}
+      <div className="bg-cyan-900 text-white p-4 flex justify-between items-center shadow-md">
         <div className="font-bold text-xl tracking-tighter">FLOODSENSE v2</div>
         <nav className="flex gap-6 text-sm font-medium">
-          <Link to="/" className="hover:text-cyan-400 transition-colors">DASHBOARD</Link>
-          <Link to="/data" className="hover:text-cyan-400 transition-colors">DATA LOGS</Link>
-          <Link to="/analysis" className="hover:text-cyan-400 transition-colors">ML ANALYSIS</Link>
+          {/* Tip: I changed the hover text to cyan-200 so it contrasts better against the new blue background */}
+          <Link to="/" className="hover:text-yellow-200 transition-colors">DASHBOARD</Link>
+          <Link to="/data" className="hover:text-yellow-200 transition-colors">DATA LOGS</Link>
+          <Link to="/analysis" className="hover:text-yellow-200 transition-colors">ML ANALYSIS</Link>
         </nav>
       </div>
 
