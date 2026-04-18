@@ -9,6 +9,9 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    allowedHosts: ["uncheapened-untrafficked-lyric.ngrok-free.dev"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
