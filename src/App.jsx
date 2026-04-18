@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useFloodData } from "@/hooks/useFloodData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Map from "@/components/map";
@@ -6,7 +6,7 @@ import RainfallChart from "@/components/RainfallChart";
 import { CloudRain, Waves, Activity, Clock, Droplets, Calendar, RefreshCcw, ShieldCheck } from "lucide-react";
 
 export default function Dashboard() {
-  const { rain, node1, node2, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
+  const { rain, node1, node2, nodes, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
   
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -98,7 +98,7 @@ export default function Dashboard() {
               <RainfallChart data={chartData} node1Data={node1History} node2Data={node2History} />
            </div>
 
-           <Map node1={node1} node2={node2} />
+           <Map nodes={nodes} node1={node1} node2={node2} />
         </div>
 
         {/* SYSTEM EVENTS SIDEBAR */}

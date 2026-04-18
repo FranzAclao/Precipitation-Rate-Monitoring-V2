@@ -39,7 +39,7 @@ export default function Data() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-slate-400 font-medium animate-pulse">
+      <div className="p-8 text-center text-muted-foreground font-medium animate-pulse">
         Loading historical data...
       </div>
     );
@@ -49,8 +49,8 @@ export default function Data() {
     <div className="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ease-in-out">
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">System Data Logs</h1>
-          <p className="text-slate-500 mt-2">Historical sensor readings for Del Carmen Stations</p>
+          <h1 className="text-3xl font-bold text-foreground">System Data Logs</h1>
+          <p className="text-muted-foreground mt-2">Historical sensor readings for Del Carmen Stations</p>
         </div>
         
         <button 
@@ -63,13 +63,13 @@ export default function Data() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-4 mb-6 border-b border-slate-200 pb-2">
+      <div className="flex gap-4 mb-6 border-b border-border pb-2">
         <button
           onClick={() => setActiveTab('node1')}
           className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${
             activeTab === 'node1' 
               ? 'bg-slate-900 text-white' 
-              : 'bg-transparent text-slate-500 hover:bg-slate-100'
+              : 'bg-transparent text-muted-foreground hover:bg-muted'
           }`}
         >
           Node 1 Logs
@@ -79,7 +79,7 @@ export default function Data() {
           className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${
             activeTab === 'node2' 
               ? 'bg-slate-900 text-white' 
-              : 'bg-transparent text-slate-500 hover:bg-slate-100'
+              : 'bg-transparent text-muted-foreground hover:bg-muted'
           }`}
         >
           Node 2 Logs
@@ -88,17 +88,17 @@ export default function Data() {
 
       <div 
         key={activeTab}
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
+        className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
       >
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="font-bold text-slate-700">
+        <div className="p-4 border-b border-border flex justify-between items-center bg-muted">
+          <h2 className="font-bold text-foreground">
             Recent Sensor Activity ({activeTab === 'node1' ? 'Node 1' : 'Node 2'})
           </h2>
         </div>
         
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-white sticky top-0 shadow-sm z-10">
+          <table className="w-full text-left text-sm text-muted-foreground">
+            <thead className="bg-card sticky top-0 shadow-sm z-10">
               <tr>
                 <th className="p-4 font-semibold border-b">Timestamp</th>
                 <th className="p-4 font-semibold border-b">Rain Rate (mm/hr)</th>
@@ -108,8 +108,8 @@ export default function Data() {
             </thead>
             <tbody>
               {currentLogs.map((log, index) => (
-                <tr key={index} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-mono text-slate-500">{log.timestamp}</td>
+                <tr key={index} className="border-b border-border/50 hover:bg-muted transition-colors">
+                  <td className="p-4 font-mono text-muted-foreground">{log.timestamp}</td>
                   <td className="p-4">{log.rain} mm/hr</td> {/* Use 'rain' key */}
                   <td className="p-4">{log.level} cm</td> {/* Use 'level' key */}
                   <td className="p-4">
@@ -125,7 +125,7 @@ export default function Data() {
               ))}
               {currentLogs.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="p-8 text-center text-slate-400 italic">
+                  <td colSpan="4" className="p-8 text-center text-muted-foreground italic">
                     No logs found for this station.
                   </td>
                 </tr>

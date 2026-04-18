@@ -17,8 +17,8 @@ export default {
       },
       colors: {
         brand: {
-          dark: "#305680",   
-          darker: "#234163",  
+          dark: "#021d92",   
+          darker: "#011053",  
           teal: "#45A7B9",    
           light: "#F0F4F8",   
         },
