@@ -216,7 +216,6 @@ To keep the `main` branch stable:
 - Firebase Realtime Database  
 - Charting Library (rainfall visualization)  
 - Leaflet (mapping integration)  
-- Machine Learning Prediction Module  
 
 ---
 
