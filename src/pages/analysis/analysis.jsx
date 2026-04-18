@@ -29,14 +29,14 @@ const predictionData = [
 
 export default function Analysis() {
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen">
+    <div className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <Brain className="h-8 w-8 text-purple-600" />
             ML Predictive Analysis
           </h1>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Neural Network Forecast (LSTM Model) based on Node 1 & Node 2 telemetry.
           </p>
         </header>
@@ -45,31 +45,31 @@ export default function Analysis() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-t-4 border-t-purple-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase text-slate-500">Prediction Confidence</CardTitle>
+              <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Prediction Confidence</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900">82.4%</div>
-              <p className="text-xs text-slate-400 mt-1">Based on last 100 iterations</p>
+              <div className="text-3xl font-bold text-foreground">82.4%</div>
+              <p className="text-xs text-muted-foreground mt-1">Based on last 100 iterations</p>
             </CardContent>
           </Card>
 
           <Card className="border-t-4 border-t-red-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase text-slate-500">Projected Peak</CardTitle>
+              <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Projected Peak</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900">3.5 meters</div>
+              <div className="text-3xl font-bold text-foreground">3.5 meters</div>
               <p className="text-xs text-red-500 font-bold mt-1">Expected in +5 Hours</p>
             </CardContent>
           </Card>
 
           <Card className="border-t-4 border-t-blue-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase text-slate-500">Impact Zone</CardTitle>
+              <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Impact Zone</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900">Zone 3</div>
-              <p className="text-xs text-slate-400 mt-1">Low-lying residential area</p>
+              <div className="text-3xl font-bold text-foreground">Zone 3</div>
+              <p className="text-xs text-muted-foreground mt-1">Low-lying residential area</p>
             </CardContent>
           </Card>
         </div>
@@ -103,10 +103,10 @@ export default function Analysis() {
 
           {/* RIGHT SIDE ANALYSIS TEXT */}
           <div className="space-y-6">
-            <Alert className="bg-red-50 border-red-200">
+            <Alert className="bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900/50">
               <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertTitle className="text-red-800 font-bold">Flood Warning Issued</AlertTitle>
-              <AlertDescription className="text-red-700 text-xs mt-1">
+              <AlertTitle className="text-red-800 dark:text-red-200 font-bold">Flood Warning Issued</AlertTitle>
+              <AlertDescription className="text-red-700 dark:text-red-200/80 text-xs mt-1">
                 The ML model has detected a rising trend consistent with flash flood patterns. Evacuation of Zone 3 is recommended if rain continues.
               </AlertDescription>
             </Alert>

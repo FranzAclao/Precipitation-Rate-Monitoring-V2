@@ -6,12 +6,22 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        brand: {
+          dark: "#021d92",   
+          darker: "#011053",  
+          teal: "#45A7B9",    
+          light: "#F0F4F8",   
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
