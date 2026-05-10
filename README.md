@@ -1,7 +1,7 @@
-# FloodSense v2  
+# LAWOM  
 ### IoT Flood Monitoring & Prediction System
 
-FloodSense v2 is a real-time web dashboard designed for the Municipality of Del Carmen.  
+LAWOM is a real-time web dashboard designed for the Municipality of Del Carmen.  
 It monitors rainfall intensity and river water levels using IoT sensor nodes (Node 1 & Node 2) and provides flood risk alerts through predictive analytics.
 
 This version migrates the legacy v1 (HTML/JS) system to a modern **React + Vite** architecture featuring:
@@ -220,4 +220,4 @@ To keep the `main` branch stable:
 
 ---
 
-© 2026 FloodSense v2 Project
+© 2026 LAWOM Project

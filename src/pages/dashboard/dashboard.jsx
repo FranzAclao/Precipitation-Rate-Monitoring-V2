@@ -66,12 +66,12 @@ export default function Dashboard() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-64 bg-brand-dark border-r border-brand-darker flex flex-col shadow-xl z-10">
+      <aside className="w-64 bg-gradient-to-b from-[#004f7a] via-[#00456c] to-[#003250] dark:from-black dark:via-[#050505] dark:to-[#0b0b0b] border-r border-white/10 dark:border-white/5 flex flex-col shadow-xl z-10">
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-2 mb-1">
             <ShieldCheck className="text-brand-teal w-6 h-6 shrink-0" />
             <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">
-              FloodSense <span className="text-brand-teal">Pro</span>
+              LAWOM 
             </h1>
           </div>
           <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.1em] mt-2">

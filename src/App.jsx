@@ -40,7 +40,7 @@ export default function Dashboard() {
         <div>
            <div className="flex items-center gap-2 mb-1">
              <ShieldCheck className="text-blue-600 w-5 h-5" />
-             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">FloodSense <span className="text-blue-600">Pro</span></h1>
+             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">LAWOM</h1>
            </div>
            <p className="text-slate-500 text-sm font-medium">Real-time Flood & Rainfall Monitoring</p>
         </div>

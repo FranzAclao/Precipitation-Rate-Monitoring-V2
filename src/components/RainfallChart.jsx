@@ -78,10 +78,31 @@ export default function RainfallChart({ data = [], node1Data = [], node2Data = [
       </div>
 
       <div className="flex justify-end gap-2 mt-4">
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          <button onClick={() => setView('both')} className={`px-4 py-1 rounded-md text-[10px] font-bold ${view === 'both' ? 'bg-white shadow-sm' : 'text-slate-400'}`}>BOTH</button>
-          <button onClick={() => setView('node1')} className={`px-4 py-1 rounded-md text-[10px] font-bold ${view === 'node1' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}>NODE 1</button>
-          <button onClick={() => setView('node2')} className={`px-4 py-1 rounded-md text-[10px] font-bold ${view === 'node2' ? 'bg-blue-500 text-white' : 'text-slate-400'}`}>NODE 2</button>
+        <div className="flex bg-muted p-1 rounded-lg border border-border">
+          <button
+            onClick={() => setView('both')}
+            className={`px-4 py-1 rounded-md text-[10px] font-bold transition-colors ${
+              view === 'both' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            BOTH
+          </button>
+          <button
+            onClick={() => setView('node1')}
+            className={`px-4 py-1 rounded-md text-[10px] font-bold transition-colors ${
+              view === 'node1' ? 'bg-emerald-500 text-white' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            NODE 1
+          </button>
+          <button
+            onClick={() => setView('node2')}
+            className={`px-4 py-1 rounded-md text-[10px] font-bold transition-colors ${
+              view === 'node2' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            NODE 2
+          </button>
         </div>
       </div>
     </div>

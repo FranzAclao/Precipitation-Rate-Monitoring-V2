@@ -30,7 +30,7 @@ export default function Data() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `FloodSense_${activeTab}_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `LAWOM_${activeTab}_Logs_${new Date().toISOString().split('T')[0]}.csv`);
     
     document.body.appendChild(link);
     link.click();
