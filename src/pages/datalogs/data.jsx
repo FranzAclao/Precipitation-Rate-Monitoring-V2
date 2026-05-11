@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useFloodData } from '../../hooks/useFloodData';
+import PageSkeleton from '@/components/PageSkeleton.jsx';
 import { Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export default function Data() {
@@ -8,6 +9,7 @@ export default function Data() {
   const [activeTab, setActiveTab] = useState('node2');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
 
   // Filter logs based on the active tab and nodeId
   const filteredLogs = useMemo(() => {
@@ -22,9 +24,17 @@ export default function Data() {
 
   // Reset to first page when tab changes
   const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
     setActiveTab(tab);
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    if (!isTabSwitching) return;
+    const timeoutId = window.setTimeout(() => setIsTabSwitching(false), 180);
+    return () => window.clearTimeout(timeoutId);
+  }, [activeTab, isTabSwitching]);
 
   // Pagination controls
   const goToPage = (page) => {
@@ -62,18 +72,14 @@ export default function Data() {
   };
 
   if (loading) {
-    return (
-      <div className="p-8 text-center text-muted-foreground font-medium animate-pulse">
-        Loading historical data...
-      </div>
-    );
+    return <PageSkeleton cards={0} rows={6} />;
   }
 
   return (
     <div className="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ease-in-out">
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">System Data Logs</h1>
+          <h1 className="text-2xl font-bold text-foreground">System Data Logs</h1>
           <p className="text-muted-foreground mt-2">Historical sensor readings for Del Carmen Stations</p>
         </div>
         
@@ -89,7 +95,7 @@ export default function Data() {
       {/* Tab Navigation */}
       <div className="flex gap-4 mb-6 border-b border-border pb-2">
         <button
-          onClick={() => setActiveTab('node1')}
+          onClick={() => handleTabChange('node1')}
           className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${
             activeTab === 'node1' 
               ? 'bg-slate-900 text-white' 
@@ -99,7 +105,7 @@ export default function Data() {
           Node 1 Logs
         </button>
         <button
-          onClick={() => setActiveTab('node2')}
+          onClick={() => handleTabChange('node2')}
           className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${
             activeTab === 'node2' 
               ? 'bg-slate-900 text-white' 
@@ -110,121 +116,124 @@ export default function Data() {
         </button>
       </div>
 
-      <div 
-        key={activeTab}
-        className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
-      >
-        <div className="p-4 border-b border-border flex justify-between items-center bg-muted">
-          <h2 className="font-bold text-foreground">
-            Recent Sensor Activity ({activeTab === 'node1' ? 'Node 1' : 'Node 2'})
-          </h2>
-        </div>
-        
-        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-          <table className="w-full text-left text-sm text-muted-foreground">
-            <thead className="bg-card sticky top-0 shadow-sm z-10">
-              <tr>
-                <th className="p-4 font-semibold border-b">Timestamp</th>
-                <th className="p-4 font-semibold border-b">Rain Rate (mm/hr)</th>
-                <th className="p-4 font-semibold border-b">Water Level (cm)</th>
-                <th className="p-4 font-semibold border-b">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedLogs.map((log, index) => (
-                <tr key={index} className="border-b border-border/50 hover:bg-muted transition-colors">
-                  <td className="p-4 font-mono text-muted-foreground">{log.timestamp}</td>
-                  <td className="p-4">{log.rain} mm/hr</td> {/* Use 'rain' key */}
-                  <td className="p-4">{log.level} cm</td> {/* Use 'level' key */}
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      log.status?.toLowerCase() === 'safe' ? 'bg-emerald-100 text-emerald-700' :
-                      log.status?.toLowerCase() === 'warning' || log.status?.toLowerCase() === 'caution' ? 'bg-amber-100 text-amber-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {log.status || 'N/A'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {paginatedLogs.length === 0 && (
+      {isTabSwitching ? (
+        <PageSkeleton cards={0} rows={6} />
+      ) : (
+        <div 
+          key={activeTab}
+          className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          <div className="p-4 border-b border-border flex justify-between items-center bg-muted">
+            <h2 className="font-bold text-foreground">
+              Recent Sensor Activity ({activeTab === 'node1' ? 'Node 1' : 'Node 2'})
+            </h2>
+          </div>
+          
+          <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+            <table className="w-full text-left text-sm text-muted-foreground">
+              <thead className="bg-card sticky top-0 shadow-sm z-10">
                 <tr>
-                  <td colSpan="4" className="p-8 text-center text-muted-foreground italic">
-                    No logs found for this station.
-                  </td>
+                  <th className="p-4 font-semibold border-b">Timestamp</th>
+                  <th className="p-4 font-semibold border-b">Rain Rate (mm/hr)</th>
+                  <th className="p-4 font-semibold border-b">Water Level (cm)</th>
+                  <th className="p-4 font-semibold border-b">Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {paginatedLogs.map((log, index) => (
+                  <tr key={index} className="border-b border-border/50 hover:bg-muted transition-colors">
+                    <td className="p-4 font-mono text-muted-foreground">{log.timestamp}</td>
+                    <td className="p-4">{log.rain} mm/hr</td>
+                    <td className="p-4">{log.level} cm</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        log.status?.toLowerCase() === 'safe' ? 'bg-emerald-100 text-emerald-700' :
+                        log.status?.toLowerCase() === 'warning' || log.status?.toLowerCase() === 'caution' ? 'bg-amber-100 text-amber-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {log.status || 'N/A'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {paginatedLogs.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="p-8 text-center text-muted-foreground italic">
+                      No logs found for this station.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination Controls */}
-        {filteredLogs.length > 0 && (
-          <div className="flex items-center justify-between mt-4 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Show</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="px-2 py-1 border border-border rounded text-sm bg-background"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span>entries per page</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                Showing {Math.min((currentPage - 1) * pageSize + 1, filteredLogs.length)} to {Math.min(currentPage * pageSize, filteredLogs.length)} of {filteredLogs.length} entries
-              </span>
-
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+          {filteredLogs.length > 0 && (
+            <div className="flex items-center justify-between mt-4 px-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 border border-border rounded text-sm bg-background"
                 >
-                  Previous
-                </button>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span>entries per page</span>
+              </div>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page => {
-                    const start = Math.max(1, currentPage - 2);
-                    const end = Math.min(totalPages, currentPage + 2);
-                    return page >= start && page <= end;
-                  })
-                  .map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded text-sm ${
-                        currentPage === page
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border hover:bg-muted'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Showing {Math.min((currentPage - 1) * pageSize + 1, filteredLogs.length)} to {Math.min(currentPage * pageSize, filteredLogs.length)} of {filteredLogs.length} entries
+                </span>
 
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      const start = Math.max(1, currentPage - 2);
+                      const end = Math.min(totalPages, currentPage + 2);
+                      return page >= start && page <= end;
+                    })
+                    .map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 border rounded text-sm ${
+                          currentPage === page
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-border hover:bg-muted'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

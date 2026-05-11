@@ -35,7 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/locations" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/data" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/analysis" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/system-events" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/alerts" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
           {/* Fallback */}

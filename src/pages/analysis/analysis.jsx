@@ -32,16 +32,11 @@ export default function Analysis() {
     <div className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Brain className="h-8 w-8 text-purple-600" />
-            ML Predictive Analysis
-          </h1>
           <p className="text-muted-foreground">
             Neural Network Forecast (LSTM Model) based on Node 1 & Node 2 telemetry.
           </p>
         </header>
 
-        {/* TOP METRICS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-t-4 border-t-purple-500">
             <CardHeader className="pb-2">

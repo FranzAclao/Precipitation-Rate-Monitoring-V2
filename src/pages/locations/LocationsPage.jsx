@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useFloodData } from "@/hooks/useFloodData";
 import Map from "@/components/map";
+import PageSkeleton from "@/components/PageSkeleton.jsx";
 import LocationCard from "./LocationCard";
 import { MapPin, Droplet, Clock, Signal } from "lucide-react";
 
@@ -33,17 +34,12 @@ export default function LocationsPage() {
   }, [locationNodes]);
 
   if (loading) {
-    return (
-      <div className="py-16 text-center text-slate-500">
-        Loading location details...
-      </div>
-    );
+    return <PageSkeleton cards={3} rows={3} compact />;
   }
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <header className="mb-2">
-        <h2 className="text-3xl font-black text-foreground tracking-tight">Locations</h2>
         <p className="text-sm text-muted-foreground font-medium mt-1">Sensor nodes deployed in the field, shown with status, coordinates, and water levels.</p>
       </header>
 

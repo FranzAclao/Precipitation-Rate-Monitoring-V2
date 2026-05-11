@@ -51,7 +51,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3 mb-3">
           <Settings className="text-blue-600" size={28} />
           <div>
-            <h2 className="text-3xl font-black text-foreground tracking-tight">Settings</h2>
+            <h2 className="text-2xl font-black text-foreground tracking-tight">Settings</h2>
             <p className="text-sm text-muted-foreground font-medium">Manage your profile, preferences, and account access.</p>
           </div>
         </div>
