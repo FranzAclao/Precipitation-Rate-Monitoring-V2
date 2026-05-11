@@ -33,6 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           {/* Protected Routes */}
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/geospatial-status" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/locations" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/data" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/analysis" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/system-events" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

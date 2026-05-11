@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
-import Map from "@/components/map";
 import RainfallChart from "@/components/RainfallChart";
 import DataLogs from "@/pages/datalogs/data";
 import AnalysisPage from "@/pages/analysis/analysis";
@@ -9,6 +8,7 @@ import {
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, 
   RefreshCcw, ShieldCheck, LayoutDashboard, Map as MapIcon, Bell, Database, Brain, Settings
 } from "lucide-react";
+import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 
 export default function Dashboard() {
@@ -20,7 +20,8 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const routeToView = useMemo(() => ({
     "/": "overview",
-    "/geospatial-status": "map",
+    "/geospatial-status": "locations",
+    "/locations": "locations",
     "/data": "data",
     "/analysis": "analysis",
     "/system-events": "events",
@@ -73,9 +74,9 @@ export default function Dashboard() {
           />
           <NavItem 
             icon={<MapIcon size={18} />} 
-            label="Geospatial Status" 
-            isActive={activeView === 'map'} 
-            onClick={() => navigate('/geospatial-status')} 
+            label="Sensor Nodes" 
+            isActive={activeView === 'locations'} 
+            onClick={() => navigate('/locations')} 
           />
           <NavItem 
             icon={<Database size={18} />} 
@@ -168,20 +169,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* --- VIEW: GEOSPATIAL MAP --- */}
-        {activeView === 'map' && (
-          <div className="space-y-6 h-full flex flex-col max-w-[1600px] mx-auto">
-            <header className="mb-2">
-              <h2 className="text-2xl font-black text-foreground tracking-tight">Geospatial Status</h2>
-              <p className="text-sm text-muted-foreground font-medium">Live sensor node locations and water levels.</p>
-            </header>
-            <div className="flex-1 bg-card rounded-2xl shadow-sm border border-border overflow-hidden min-h-[500px] p-2">
-              <Map nodes={nodes} node1={node1} node2={node2} />
-            </div>
-          </div>
-        )}
+        {activeView === 'locations' && <LocationsPage />}
 
-        {/* --- VIEW: SYSTEM EVENTS --- */}
         {activeView === 'events' && (
           <div className="space-y-6 max-w-[1600px] mx-auto">
             <header className="mb-6">
@@ -228,7 +217,6 @@ export default function Dashboard() {
   );
 }
 
-// --- SUBCOMPONENTS ---
 
 function NavItem({ icon, label, isActive, onClick, badge }) {
 
@@ -268,13 +256,11 @@ function MetricCard({ title, value, subtitle, icon, status }) {
         : 'hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
-      {/* Top Row: Title and Icon Box */}
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
           {title}
         </h3>
         
-        {/* Icon Container: Gray if offline, soft teal if online */}
         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
           isOffline 
             ? 'bg-muted text-muted-foreground' 
@@ -284,7 +270,6 @@ function MetricCard({ title, value, subtitle, icon, status }) {
         </div>
       </div>
       
-      {/* Bottom Row: Value and Status */}
       <div>
         <div className={`text-2xl lg:text-3xl font-black tracking-tight ${isOffline ? 'text-muted-foreground' : 'text-foreground'}`}>
           {value}
