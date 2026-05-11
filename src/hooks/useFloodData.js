@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ref, onValue } from "firebase/database";
 import { database } from "@/lib/firebase";
 
@@ -8,79 +8,81 @@ export function useFloodData() {
     node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null },
     node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null },
     nodes: [],
-    history: [],      
-    node1History: [], 
-    node2History: [], 
+    history: [],
+    node1History: [],
+    node2History: [],
     allLogs: [],
     lastUpdate: "--",
     loading: true,
   });
 
+  // Memoize expensive functions to prevent recreation on every render
+  const checkOffline = useCallback((timestamp) => {
+    if (!timestamp) return true;
+    const sensorTime = new Date(timestamp.replace(" ", "T"));
+    const now = new Date();
+    return (now - sensorTime) / (1000 * 60) > 20;
+  }, []);
+
+  const getRainIntensity = useCallback((mm) => {
+    if (mm === 0) return "NO RAIN";
+    if (mm < 2.5) return "LIGHT";
+    if (mm < 7.6) return "MODERATE";
+    if (mm < 50) return "HEAVY";
+    return "VIOLENT";
+  }, []);
+
+  const processSnapshot = useCallback((val, nodeKey) => {
+    if (!val) return [];
+    const nodeId = String(nodeKey).toLowerCase().replace(/\s+/g, "");
+    return Object.values(val)
+      .filter(v => v && v.Timestamp)
+      .map(v => ({
+        timestamp: v.Timestamp,
+        fullDate: v.Timestamp.split(" ")[0],
+        time: new Date(v.Timestamp.replace(" ", "T")).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        rain: parseFloat(v.RainRate || 0),
+        level: parseFloat(v.WaterLevel || 0),
+        nodeId,
+        nodeKey
+      }));
+  }, []);
+
+  const getLatestEntry = useCallback((val) => {
+    if (!val) return null;
+    const entries = Object.values(val).filter(v => v && v.Timestamp);
+    if (entries.length === 0) return null;
+    entries.sort((a, b) => new Date(a.Timestamp.replace(" ", "T")) - new Date(b.Timestamp.replace(" ", "T")));
+    return entries[entries.length - 1];
+  }, []);
+
+  const getCoord = useCallback((entry, keys) => {
+    if (!entry) return 0;
+    for (const key of keys) {
+      const raw = entry[key];
+      const num = raw === undefined || raw === null ? NaN : parseFloat(raw);
+      if (!Number.isNaN(num) && num !== 0) return num;
+    }
+    return 0;
+  }, []);
+
+  const toNodeDisplayName = useCallback((nodeKey) => {
+    const match = /^node\s*(\d+)$/i.exec(String(nodeKey).trim());
+    if (match) return `Sensor Node ${match[1]}`;
+    return `Sensor ${nodeKey}`;
+  }, []);
+
   useEffect(() => {
-    const checkOffline = (timestamp) => {
-      if (!timestamp) return true;
-      const sensorTime = new Date(timestamp.replace(" ", "T"));
-      const now = new Date();
-      return (now - sensorTime) / (1000 * 60) > 20;
-    };
-
-    const getRainIntensity = (mm) => {
-      if (mm === 0) return "NO RAIN";
-      if (mm < 2.5) return "LIGHT";
-      if (mm < 7.6) return "MODERATE";
-      if (mm < 50) return "HEAVY";
-      return "VIOLENT";
-    };
-
-    const processSnapshot = (val, nodeKey) => {
-      if (!val) return [];
-      const nodeId = String(nodeKey).toLowerCase().replace(/\s+/g, "");
-      return Object.values(val)
-        .filter(v => v && v.Timestamp)
-        .map(v => ({
-          timestamp: v.Timestamp,
-          fullDate: v.Timestamp.split(" ")[0],
-          time: new Date(v.Timestamp.replace(" ", "T")).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          rain: parseFloat(v.RainRate || 0), // Standardizing property name to 'rain'
-          level: parseFloat(v.WaterLevel || 0),
-          nodeId,
-          nodeKey
-        }));
-    };
-
-    const getLatestEntry = (val) => {
-      if (!val) return null;
-      const entries = Object.values(val).filter(v => v && v.Timestamp);
-      if (entries.length === 0) return null;
-      entries.sort((a, b) => new Date(a.Timestamp.replace(" ", "T")) - new Date(b.Timestamp.replace(" ", "T")));
-      return entries[entries.length - 1];
-    };
-
-    const getCoord = (entry, keys) => {
-      if (!entry) return 0;
-      for (const key of keys) {
-        const raw = entry[key];
-        const num = raw === undefined || raw === null ? NaN : parseFloat(raw);
-        if (!Number.isNaN(num) && num !== 0) return num;
-      }
-      return 0;
-    };
-
-    const toNodeDisplayName = (nodeKey) => {
-      const match = /^node\s*(\d+)$/i.exec(String(nodeKey).trim());
-      if (match) return `Sensor Node ${match[1]}`;
-      return `Sensor ${nodeKey}`;
-    };
-
     const rootRef = ref(database);
     const unsub = onValue(rootRef, (snap) => {
       const root = snap.val() || {};
       const keys = Object.keys(root);
       const nodeKeys = keys.filter(k => /^node\s*\d+$/i.test(k));
 
-      const nodes = [];
+      // Use useMemo-like optimization by computing only what's needed
       const logsByKey = {};
       const latestByKey = {};
+      const nodes = [];
 
       for (const nodeKey of nodeKeys) {
         const val = root[nodeKey];
@@ -105,7 +107,6 @@ export function useFloodData() {
         });
       }
 
-      // Merge and Sort Logs chronologically
       const mergedLogs = Object.values(logsByKey)
         .flat()
         .sort((a, b) => new Date(a.timestamp.replace(" ", "T")) - new Date(b.timestamp.replace(" ", "T")));
@@ -163,7 +164,7 @@ export function useFloodData() {
     });
 
     return () => { unsub(); };
-  }, []);
+  }, [checkOffline, getRainIntensity, processSnapshot, getLatestEntry, getCoord, toNodeDisplayName]);
 
   return data;
 }
