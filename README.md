@@ -214,6 +214,7 @@ To keep the `main` branch stable:
 - React  
 - Vite  
 - Firebase Realtime Database  
+- Firebase Authentication
 - Charting Library (rainfall visualization)  
 - Leaflet (mapping integration)  
 - Machine Learning Prediction Module  

@@ -29,7 +29,6 @@ export function UserMenu() {
 
   return (
     <div className="relative">
-      {/* Menu Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
@@ -43,7 +42,6 @@ export function UserMenu() {
         <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
           {/* User Info */}
@@ -71,7 +69,6 @@ export function UserMenu() {
         </div>
       )}
 
-      {/* Close menu when clicking outside */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40"

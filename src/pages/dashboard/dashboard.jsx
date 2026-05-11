@@ -53,11 +53,9 @@ export default function Dashboard() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-      {/* ================= MAIN CONTENT AREA ================= */}
       <main className="flex-1 overflow-y-auto bg-background p-6 md:p-10 animate-in fade-in duration-500">
         <Header />
 
-        {/* --- VIEW: DASHBOARD OVERVIEW --- */}
         {activeView === 'overview' && (
           <div className="space-y-6 max-w-[1600px] mx-auto">
             <header className="mb-8">
