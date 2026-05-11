@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { logout, getUserDisplayName } from "@/lib/authUtils";
-import { LogOut, User, ChevronDown } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown } from "lucide-react";
 
 /**
  * UserMenu - Dropdown with user info and logout button
- * Shows user email/name and logout option
+ * Shows user email/name and quick navigation actions
  */
 export function UserMenu() {
   const { user } = useAuth();
@@ -18,6 +18,11 @@ export function UserMenu() {
     if (result.success) {
       navigate("/login");
     }
+  };
+
+  const handleSettings = () => {
+    setIsOpen(false);
+    navigate("/settings");
   };
 
   if (!user) return null;
@@ -44,10 +49,18 @@ export function UserMenu() {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-slate-200">
             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">Logged in as</p>
-            <p className="text-sm font-semibold text-slate-900 mt-1 truncate">{user.email}</p>
+            <p className="text-sm font-semibold text-slate-900 mt-1 truncate">{getUserDisplayName(user)}</p>
+            <p className="text-xs text-slate-400 mt-1 truncate">{user.email}</p>
           </div>
 
-          {/* Logout Button */}
+          <button
+            onClick={handleSettings}
+            className="w-full px-4 py-3 flex items-center gap-2 text-slate-700 hover:bg-slate-100 transition-colors font-medium text-sm"
+          >
+            <Settings size={16} />
+            Settings
+          </button>
+
           <button
             onClick={handleLogout}
             className="w-full px-4 py-3 flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors font-medium text-sm"

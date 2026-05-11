@@ -12,8 +12,7 @@ import './index.css'
 // Apply persisted theme ASAP (prevents flash)
 try {
   const storedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
-  const isDark = storedTheme ? storedTheme === 'dark' : Boolean(prefersDark);
+  const isDark = storedTheme ? storedTheme === 'dark' : false;
   document.documentElement.classList.toggle('dark', isDark);
 } catch {
   // ignore

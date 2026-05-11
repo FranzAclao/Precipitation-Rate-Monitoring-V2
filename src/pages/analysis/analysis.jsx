@@ -101,7 +101,6 @@ export default function Analysis() {
             </CardContent>
           </Card>
 
-          {/* RIGHT SIDE ANALYSIS TEXT */}
           <div className="space-y-6">
             <Alert className="bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900/50">
               <AlertTriangle className="h-4 w-4 text-red-600" />

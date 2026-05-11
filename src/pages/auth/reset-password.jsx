@@ -42,12 +42,10 @@ export default function ResetPassword() {
           <p className="text-slate-500 text-sm font-medium">Real-time Flood & Rainfall Monitoring</p>
         </div>
 
-        {/* Reset Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-6">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Reset Password</h2>
           <p className="text-slate-600 text-sm mb-6">Enter your email address and we'll send you a link to reset your password.</p>
 
-          {/* Success Alert */}
           {success && (
             <div className="mb-6 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
               <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" size={18} />
@@ -55,7 +53,6 @@ export default function ResetPassword() {
             </div>
           )}
 
-          {/* Error Alert */}
           {error && (
             <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={18} />
@@ -63,7 +60,6 @@ export default function ResetPassword() {
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleReset} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>

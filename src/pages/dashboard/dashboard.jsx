@@ -1,20 +1,21 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import RainfallChart from "@/components/RainfallChart";
 import DataLogs from "@/pages/datalogs/data";
 import AnalysisPage from "@/pages/analysis/analysis";
 import { 
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, 
-  RefreshCcw, ShieldCheck, LayoutDashboard, Map as MapIcon, Bell, Database, Brain, Settings
+  RefreshCcw
 } from "lucide-react";
+import { Header } from "@/components/Header.jsx";
+import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 
 export default function Dashboard() {
   const { rain, node1, node2, nodes, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -50,72 +51,12 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
-      
-      {/* ================= SIDEBAR ================= */}
-      <aside className="w-64 bg-gradient-to-b from-[#004f7a] via-[#00456c] to-[#003250] dark:from-black dark:via-[#050505] dark:to-[#0b0b0b] border-r border-white/10 dark:border-white/5 flex flex-col shadow-xl z-10">
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-2 mb-1">
-            <ShieldCheck className="text-brand-teal w-6 h-6 shrink-0" />
-            <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">
-              LAWOM 
-            </h1>
-          </div>
-          <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.1em] mt-2">
-            Network: <span className="text-emerald-400">Online</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          <NavItem 
-            icon={<LayoutDashboard size={18} />} 
-            label="Overview" 
-            isActive={activeView === 'overview'} 
-            onClick={() => navigate('/')} 
-          />
-          <NavItem 
-            icon={<MapIcon size={18} />} 
-            label="Sensor Nodes" 
-            isActive={activeView === 'locations'} 
-            onClick={() => navigate('/locations')} 
-          />
-          <NavItem 
-            icon={<Database size={18} />} 
-            label="Data Logs" 
-            isActive={activeView === 'data'} 
-            onClick={() => navigate('/data')} 
-          />
-          <NavItem 
-            icon={<Brain size={18} />} 
-            label="ML Analysis" 
-            isActive={activeView === 'analysis'} 
-            onClick={() => navigate('/analysis')} 
-          />
-          <NavItem 
-            icon={<Bell size={18} />} 
-            label="System Events" 
-            isActive={activeView === 'events'} 
-            onClick={() => navigate('/system-events')} 
-            badge={node1.status === 'offline' || node2.status === 'offline' ? "!" : null}
-          />
-          <NavItem 
-            icon={<Settings size={18} />} 
-            label="Settings" 
-            isActive={activeView === 'settings'} 
-            onClick={() => navigate('/settings')} 
-          />
-        </nav>
-
-        <div className="p-4 border-t border-white/10 bg-black/10">
-          <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1 text-center">Last Sync</p>
-          <div className="font-mono text-xs font-bold text-slate-200 bg-white/10 px-3 py-2 rounded-md border border-white/10 shadow-sm text-center">
-            {lastUpdate}
-          </div>
-        </div>
-      </aside>
+      <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
       {/* ================= MAIN CONTENT AREA ================= */}
       <main className="flex-1 overflow-y-auto bg-background p-6 md:p-10 animate-in fade-in duration-500">
-        
+        <Header />
+
         {/* --- VIEW: DASHBOARD OVERVIEW --- */}
         {activeView === 'overview' && (
           <div className="space-y-6 max-w-[1600px] mx-auto">
@@ -219,11 +160,10 @@ export default function Dashboard() {
 
 
 function NavItem({ icon, label, isActive, onClick, badge }) {
-
   return (
-
     <button
       onClick={onClick}
+      title={label}
       className={`group w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 font-bold text-sm ${
         isActive
           ? 'border-brand-teal/30 text-yellow-400 shadow-sm border'
@@ -231,7 +171,6 @@ function NavItem({ icon, label, isActive, onClick, badge }) {
       }`}
     >
       <div className="flex items-center gap-3">
-        {/* The icon now also stays yellow when the tab is active */}
         <span className={`transition-colors duration-200 ${isActive ? 'text-yellow-400' : 'text-slate-400 group-hover:text-yellow-400'}`}>
           {icon}
         </span>

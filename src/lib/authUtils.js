@@ -17,17 +17,11 @@ export async function logout() {
   }
 }
 
-/**
- * Get current user's display name or email
- */
 export function getUserDisplayName(user) {
   return user?.displayName || user?.email?.split("@")[0] || "User";
 }
 
-/**
- * Check if user is admin (can be extended based on custom claims)
- * For now, returns false - you'll customize this later
- */
+
 export function isUserAdmin(user) {
   // TODO: Implement custom claims verification from Firebase
   return false;

@@ -107,7 +107,6 @@ export function useFloodData() {
         });
       }
 
-      // Optimize: Only sort if we have new data
       const mergedLogs = Object.values(logsByKey)
         .flat()
         .sort((a, b) => new Date(a.timestamp.replace(" ", "T")) - new Date(b.timestamp.replace(" ", "T")));
