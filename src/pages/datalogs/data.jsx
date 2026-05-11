@@ -1,26 +1,50 @@
 import React, { useState, useMemo } from 'react';
-import { useFloodData } from '../../hooks/useFloodData'; 
-import { Download } from 'lucide-react'; 
+import { useFloodData } from '../../hooks/useFloodData';
+import { Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export default function Data() {
   // Pull standardized allLogs from the hook
   const { allLogs, loading } = useFloodData();
   const [activeTab, setActiveTab] = useState('node2');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   // Filter logs based on the active tab and nodeId
-  const currentLogs = useMemo(() => {
+  const filteredLogs = useMemo(() => {
     return (allLogs || []).filter(log => log.nodeId === activeTab);
   }, [allLogs, activeTab]);
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredLogs.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
+
+  // Reset to first page when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  // Pagination controls
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToPreviousPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
   const downloadCSV = () => {
-    if (currentLogs.length === 0) return;
+    if (filteredLogs.length === 0) return;
 
     const headers = ["Timestamp", "Rain Rate (mm/hr)", "Water Level (cm)", "Status"];
-    
-    const csvRows = currentLogs.map(log => [
-      `"${log.timestamp}"`, 
-      log.rain || 0, // Updated to standardized 'rain' key
-      log.level || 0, // Updated to standardized 'level' key
+
+    const csvRows = filteredLogs.map(log => [
+      `"${log.timestamp}"`,
+      log.rain || 0,
+      log.level || 0,
       `"${log.status || 'N/A'}"`
     ]);
 
@@ -31,7 +55,7 @@ export default function Data() {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", `LAWOM_${activeTab}_Logs_${new Date().toISOString().split('T')[0]}.csv`);
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -107,7 +131,7 @@ export default function Data() {
               </tr>
             </thead>
             <tbody>
-              {currentLogs.map((log, index) => (
+              {paginatedLogs.map((log, index) => (
                 <tr key={index} className="border-b border-border/50 hover:bg-muted transition-colors">
                   <td className="p-4 font-mono text-muted-foreground">{log.timestamp}</td>
                   <td className="p-4">{log.rain} mm/hr</td> {/* Use 'rain' key */}
@@ -123,7 +147,7 @@ export default function Data() {
                   </td>
                 </tr>
               ))}
-              {currentLogs.length === 0 && (
+              {paginatedLogs.length === 0 && (
                 <tr>
                   <td colSpan="4" className="p-8 text-center text-muted-foreground italic">
                     No logs found for this station.
@@ -133,6 +157,73 @@ export default function Data() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {filteredLogs.length > 0 && (
+          <div className="flex items-center justify-between mt-4 px-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Show</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-1 border border-border rounded text-sm bg-background"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>entries per page</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Showing {Math.min((currentPage - 1) * pageSize + 1, filteredLogs.length)} to {Math.min(currentPage * pageSize, filteredLogs.length)} of {filteredLogs.length} entries
+              </span>
+
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    const start = Math.max(1, currentPage - 2);
+                    const end = Math.min(totalPages, currentPage + 2);
+                    return page >= start && page <= end;
+                  })
+                  .map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 border rounded text-sm ${
+                        currentPage === page
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'border-border hover:bg-muted'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border border-border rounded text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
