@@ -1,7 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from './context/AuthContext.jsx'
+import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import Dashboard from './pages/dashboard/dashboard.jsx'
+import Login from './pages/auth/login.jsx'
+import Signup from './pages/auth/signup.jsx'
+import ResetPassword from './pages/auth/reset-password.jsx'
 import './index.css'
 
 // Apply persisted theme ASAP (prevents flash)
@@ -16,16 +21,27 @@ try {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      {/* PAGE CONTENT SWITCHER */}
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/geospatial-status" element={<Dashboard />} />
-        <Route path="/data" element={<Dashboard />} />
-        <Route path="/analysis" element={<Dashboard />} />
-        <Route path="/system-events" element={<Dashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        {/* PAGE CONTENT SWITCHER */}
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Protected Routes */}
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/geospatial-status" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/data" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/analysis" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/system-events" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>,
 )

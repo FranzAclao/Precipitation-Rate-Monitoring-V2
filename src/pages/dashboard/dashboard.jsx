@@ -7,31 +7,15 @@ import DataLogs from "@/pages/datalogs/data";
 import AnalysisPage from "@/pages/analysis/analysis";
 import { 
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, 
-  RefreshCcw, ShieldCheck, LayoutDashboard, Map as MapIcon, Bell, Database, Brain, Moon, Sun
+  RefreshCcw, ShieldCheck, LayoutDashboard, Map as MapIcon, Bell, Database, Brain, Settings
 } from "lucide-react";
+import SettingsPage from "@/pages/settings/settings.jsx";
 
 export default function Dashboard() {
   const { rain, node1, node2, nodes, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [isDark, setIsDark] = useState(() => {
-    try {
-      return document.documentElement.classList.contains('dark');
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      document.documentElement.classList.toggle('dark', isDark);
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    } catch {
-      // ignore
-    }
-  }, [isDark]);
-  
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const routeToView = useMemo(() => ({
@@ -40,6 +24,7 @@ export default function Dashboard() {
     "/data": "data",
     "/analysis": "analysis",
     "/system-events": "events",
+    "/settings": "settings",
   }), []);
   const activeView = routeToView[location.pathname] || "overview";
 
@@ -111,17 +96,15 @@ export default function Dashboard() {
             onClick={() => navigate('/system-events')} 
             badge={node1.status === 'offline' || node2.status === 'offline' ? "!" : null}
           />
+          <NavItem 
+            icon={<Settings size={18} />} 
+            label="Settings" 
+            isActive={activeView === 'settings'} 
+            onClick={() => navigate('/settings')} 
+          />
         </nav>
 
         <div className="p-4 border-t border-white/10 bg-black/10">
-          <button
-            type="button"
-            onClick={() => setIsDark(v => !v)}
-            className="w-full mb-3 flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-200 hover:bg-white/10 transition-colors"
-          >
-            {isDark ? <Sun size={14} className="text-yellow-300" /> : <Moon size={14} className="text-slate-200" />}
-            Theme: {isDark ? "Dark" : "Light"}
-          </button>
           <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1 text-center">Last Sync</p>
           <div className="font-mono text-xs font-bold text-slate-200 bg-white/10 px-3 py-2 rounded-md border border-white/10 shadow-sm text-center">
             {lastUpdate}
@@ -237,6 +220,8 @@ export default function Dashboard() {
         {activeView === 'data' && <DataLogs />}
 
         {activeView === 'analysis' && <AnalysisPage />}
+
+        {activeView === 'settings' && <SettingsPage />}
 
       </main>
     </div>
