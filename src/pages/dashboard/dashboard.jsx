@@ -73,10 +73,10 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
+    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-      <main className="flex-1 overflow-y-auto bg-background p-6 md:p-10 animate-in fade-in duration-500">
+      <main className="flex-1 overflow-y-auto bg-background px-4 pb-28 pt-5 animate-in fade-in duration-500 sm:px-6 md:p-10">
         <Header title={headerTitle} />
 
         {isViewSwitching ? <PageSkeleton /> : (
@@ -88,7 +88,7 @@ export default function Dashboard() {
             </header>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 md:gap-4">
               <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={rain.source} icon={<CloudRain className="w-5 h-5" />} />
               <MetricCard title="Rainfall (1hr)" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
               <MetricCard title="Node 1 Level" value={node1.level} subtitle={node1.label} status={node1.status} icon={<Waves className="w-5 h-5" />} />
@@ -98,11 +98,11 @@ export default function Dashboard() {
             </div>
 
             {/* Chart Area */}
-            <div className="mt-8 bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
-              <div className="flex justify-between items-center mb-6">
+            <div className="mt-8 bg-card text-card-foreground p-4 sm:p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Sensor Telemetry</h3>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                    {selectedDate !== todayStr && (
                      <button 
                       onClick={() => setSelectedDate(todayStr)}
@@ -113,7 +113,7 @@ export default function Dashboard() {
                      </button>
                    )}
                    <div 
-                     className="flex items-center gap-2 border border-border bg-muted rounded-lg px-3 py-1.5 cursor-pointer hover:border-brand-teal transition-all shadow-sm"
+                     className="flex min-w-0 items-center gap-2 border border-border bg-muted rounded-lg px-3 py-1.5 cursor-pointer hover:border-brand-teal transition-all shadow-sm"
                      onClick={() => document.getElementById('thesis-date-picker')?.showPicker()}
                    >
                       <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
@@ -122,7 +122,7 @@ export default function Dashboard() {
                          type="date" 
                          value={selectedDate}
                          onChange={(e) => setSelectedDate(e.target.value)}
-                         className="text-[11px] font-bold text-foreground bg-transparent outline-none cursor-pointer uppercase"
+                         className="min-w-0 text-[11px] font-bold text-foreground bg-transparent outline-none cursor-pointer uppercase"
                       />
                    </div>
                 </div>
@@ -180,7 +180,7 @@ function MetricCard({ title, value, subtitle, icon, status }) {
   const isOffline = status === 'offline';
   
   return (
-    <div className={`relative bg-card text-card-foreground p-5 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[140px] group ${
+    <div className={`relative bg-card text-card-foreground p-4 sm:p-5 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
       isOffline 
         ? 'opacity-80 bg-muted/60' 
         : 'hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
@@ -201,7 +201,7 @@ function MetricCard({ title, value, subtitle, icon, status }) {
       </div>
       
       <div>
-        <div className={`text-2xl lg:text-3xl font-black tracking-tight ${isOffline ? 'text-muted-foreground' : 'text-foreground'}`}>
+        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${isOffline ? 'text-muted-foreground' : 'text-foreground'}`}>
           {value}
         </div>
         <div className="flex items-center gap-1.5 mt-1.5">

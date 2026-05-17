@@ -44,20 +44,20 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-slate-100 flex items-center justify-center px-4 py-6 sm:p-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <ShieldCheck className="text-blue-600" size={32} />
-            <h1 className="text-3xl font-black text-slate-900">LAWOM</h1>
+            <ShieldCheck className="text-blue-600" size={30} />
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">LAWOM</h1>
           </div>
           <p className="text-slate-500 text-sm font-medium">Real-time Flood & Rainfall Monitoring</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-6">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Welcome Back</h2>
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Welcome Back</h2>
 
           {/* Error Alert */}
           {error && (
