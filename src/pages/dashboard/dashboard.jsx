@@ -15,11 +15,18 @@ import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function Dashboard() {
-  const { rain, node1, node2, nodes, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
+  const { rain, node1, node2, allLogs, lastUpdate, loading } = useFloodData();
   const location = useLocation();
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [isViewSwitching, setIsViewSwitching] = useState(false);
   const routeToView = useMemo(() => ({
@@ -43,11 +50,9 @@ export default function Dashboard() {
   const headerTitle = viewTitles[activeView] || "Overview";
 
   const chartData = useMemo(() => {
-    if (!allLogs || allLogs.length === 0) return selectedDate === todayStr ? history : [];
-    const dailyData = allLogs.filter(log => log.fullDate === selectedDate);
-    if (dailyData.length > 0) return dailyData;
-    return selectedDate === todayStr ? history : [];
-  }, [selectedDate, allLogs, history, todayStr]);
+    if (!allLogs || allLogs.length === 0) return [];
+    return allLogs.filter(log => log.fullDate === selectedDate);
+  }, [selectedDate, allLogs]);
 
   useEffect(() => {
     setIsViewSwitching(true);
@@ -122,7 +127,7 @@ export default function Dashboard() {
                    </div>
                 </div>
               </div>
-              <RainfallChart data={chartData} node1Data={node1History} node2Data={node2History} />
+              <RainfallChart data={chartData} />
             </div>
           </div>
         )}
