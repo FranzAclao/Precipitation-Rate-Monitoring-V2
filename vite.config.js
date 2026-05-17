@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
+  base: "/Precipitation-Rate-Monitoring-V2/",
   plugins: [react()],
   server: {
     allowedHosts: ["uncheapened-untrafficked-lyric.ngrok-free.dev"],
