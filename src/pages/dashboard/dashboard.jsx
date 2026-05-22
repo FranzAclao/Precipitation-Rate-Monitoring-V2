@@ -10,7 +10,7 @@ import {
   RefreshCcw
 } from "lucide-react";
 import { Header } from "@/components/Header.jsx";
-import PageSkeleton from "@/components/PageSkeleton.jsx";
+import { AppLoader } from "@/components/AppLoader.jsx";
 import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
@@ -173,7 +173,7 @@ export default function Dashboard() {
         <Header title={headerTitle} />
 
         <div className="pt-6 md:pt-8">
-        {isViewSwitching ? <PageSkeleton /> : (
+        {isViewSwitching ? <AppLoader label="Loading View..." /> : (
           <>
         {activeView === 'dashboard' && (
           <div className="space-y-6 max-w-[1600px] mx-auto">

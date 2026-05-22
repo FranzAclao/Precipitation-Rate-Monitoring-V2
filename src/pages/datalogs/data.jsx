@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFloodData } from '../../hooks/useFloodData';
-import PageSkeleton from '@/components/PageSkeleton.jsx';
+import { AppLoader } from '@/components/AppLoader.jsx';
 import { Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export default function Data() {
@@ -72,7 +72,7 @@ export default function Data() {
   };
 
   if (loading) {
-    return <PageSkeleton cards={0} rows={6} />;
+    return <AppLoader label="Loading Data Logs..." />;
   }
 
   return (
@@ -117,7 +117,7 @@ export default function Data() {
       </div>
 
       {isTabSwitching ? (
-        <PageSkeleton cards={0} rows={6} />
+        <AppLoader label="Loading Logs..." />
       ) : (
         <div 
           key={activeTab}

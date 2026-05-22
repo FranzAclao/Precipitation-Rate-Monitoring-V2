@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { Header } from "@/components/Header.jsx";
 import { Sidebar } from "@/components/Sidebar.jsx";
-import PageSkeleton from "@/components/PageSkeleton.jsx";
+import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
 import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle } from "lucide-react";
 
@@ -83,7 +83,7 @@ export default function OverviewPage() {
         <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
           <Header title="Overview" />
           <div className="pt-6 md:pt-8">
-            <PageSkeleton />
+            <AppLoader label="Loading Overview..." />
           </div>
         </main>
       </div>
