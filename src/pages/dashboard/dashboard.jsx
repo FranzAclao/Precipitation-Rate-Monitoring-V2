@@ -118,9 +118,10 @@ export default function Dashboard() {
     <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-      <main className="flex-1 overflow-y-auto bg-background p-6 md:px-12 md:py-10 lg:px-14 animate-in fade-in duration-500">
+      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
         <Header title={headerTitle} />
 
+        <div className="pt-6 md:pt-8">
         {isViewSwitching ? <PageSkeleton /> : (
           <>
         {activeView === 'overview' && (
@@ -184,6 +185,7 @@ export default function Dashboard() {
         {activeView === 'settings' && <SettingsPage />}
           </>
         )}
+        </div>
 
       </main>
     </div>
@@ -317,9 +319,9 @@ function NodeSummaryCard({ title, node }) {
   const hoverTone = getNodeHoverTone(status, isOffline);
 
   return (
-    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[198px] group ${
+    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
       isOffline
-        ? "opacity-80 bg-muted/60"
+        ? ""
         : hoverTone
     }`}>
       <div className="flex items-start justify-between gap-3 mb-3">

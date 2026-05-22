@@ -77,13 +77,13 @@ export default function RainfallChart({ data = [], node1Data = [], node2Data = [
               {(view === 'both' || view === 'node1') && (
                 <>
                   <Area yAxisId="rain" type="linear" dataKey="node1" stroke="#10b981" fill="url(#colorN1)" strokeWidth={2} connectNulls />
-                  <Line yAxisId="level" type="linear" dataKey="node1Level" stroke="#f59e0b" strokeWidth={2.5} dot={false} connectNulls />
+                  <Line yAxisId="level" type="linear" dataKey="node1Level" stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="7 5" dot={false} connectNulls />
                 </>
               )}
               {(view === 'both' || view === 'node2') && (
                 <>
                   <Area yAxisId="rain" type="linear" dataKey="node2" stroke="#3b82f6" fill="url(#colorN2)" strokeWidth={2} connectNulls />
-                  <Line yAxisId="level" type="linear" dataKey="node2Level" stroke="#ef4444" strokeWidth={2.5} dot={false} connectNulls />
+                  <Line yAxisId="level" type="linear" dataKey="node2Level" stroke="#ef4444" strokeWidth={2.5} strokeDasharray="7 5" dot={false} connectNulls />
                 </>
               )}
             </AreaChart>
