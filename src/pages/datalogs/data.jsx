@@ -121,7 +121,7 @@ export default function Data() {
       ) : (
         <div 
           key={activeTab}
-          className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
+          className="bg-card text-card-foreground rounded-xl shadow-md border border-slate-300 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
         >
           <div className="p-4 border-b border-border flex justify-between items-center bg-muted">
             <h2 className="font-bold text-foreground">
@@ -131,7 +131,7 @@ export default function Data() {
           
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-left text-sm text-muted-foreground">
-              <thead className="bg-card sticky top-0 shadow-sm z-10">
+              <thead className="bg-card sticky top-0 shadow-md z-10">
                 <tr>
                   <th className="p-4 font-semibold border-b">Timestamp</th>
                   <th className="p-4 font-semibold border-b">Rain Rate (mm/hr)</th>

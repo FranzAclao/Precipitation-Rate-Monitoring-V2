@@ -1,13 +1,13 @@
 .water-level-section {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(148 163 184);
   border-radius: 28px;
-  background: linear-gradient(to bottom, #004f7a, #00456c, #003250);
-  color: rgb(255 255 255);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
   width: 100%;
   max-width: 100%;
   overflow: hidden;
   padding: 1.25rem 1.1rem 1.1rem;
-  box-shadow: 0 12px 28px rgba(2, 23, 42, 0.22);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
 .water-level-summary-grid {
@@ -26,21 +26,21 @@
 }
 
 .water-level-card {
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgb(148 163 184);
   border-radius: 1rem;
   background: hsl(var(--card));
   height: 100%;
   padding: 0.85rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
 .water-level-card-lg {
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgb(148 163 184);
   border-radius: 1rem;
   background: hsl(var(--card));
   height: 100%;
   padding: 0.95rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
 .water-level-header {
@@ -52,10 +52,9 @@
 
 .water-level-subtitle {
   margin-top: 0.35rem;
-  color: rgb(203 213 225);
+  color: rgb(100 116 139);
   font-size: 0.95rem;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(2, 23, 42, 0.3);
 }
 
 .water-level-status-row {
@@ -69,11 +68,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid hsl(var(--border));
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: hsl(var(--card));
   padding: 0.45rem 0.85rem;
-  color: rgb(241 245 249);
+  color: rgb(51 65 85);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
