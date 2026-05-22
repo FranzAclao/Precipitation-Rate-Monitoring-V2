@@ -82,9 +82,9 @@ export default function OverviewPage() {
         <Sidebar activeView="overview" node1={node1} node2={node2} lastUpdate={lastUpdate} />
         <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
           <Header title="Overview" />
-          <div className="pt-6 md:pt-8">
-            <AppLoader label="Loading Overview..." />
-          </div>
+        <div className="app-page-container">
+          <AppLoader label="Loading Overview..." />
+        </div>
         </main>
       </div>
     );
@@ -97,20 +97,20 @@ export default function OverviewPage() {
       <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
         <Header title="Overview" />
 
-        <div className="pt-6 md:pt-8">
-          <div className="space-y-6 max-w-[1600px] mx-auto">
-            <header className="mb-8">
-              <p className="text-sm text-muted-foreground font-medium mt-1">System overview with node locations, recent telemetry, and active alerts.</p>
+        <div className="app-page-container">
+          <div className="app-page-stack">
+            <header className="app-page-header">
+              <p className="app-page-copy">System overview with node locations, recent telemetry, and active alerts.</p>
             </header>
 
-            <section className="rounded-3xl border border-slate-300 bg-card p-5 shadow-md">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-5">
+            <section className="app-card">
+              <div className="app-section-header flex-col lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.28em] text-slate-400">Monitoring Overview</p>
-                  <h3 className="mt-2 text-xl font-black text-foreground">Dashboard metrics overview</h3>
+                  <p className="app-eyebrow">Monitoring Overview</p>
+                  <h3 className="app-section-title">Dashboard metrics overview</h3>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <PreviewLink icon={<Clock size={14} />} label="Open dashboard" onClick={() => navigate("/dashboard")} />
+                  <PreviewLink icon={<Clock size={14} />} label="Open Monitoring" onClick={() => navigate("/dashboard")} />
                 </div>
               </div>
 
@@ -129,7 +129,7 @@ export default function OverviewPage() {
                   <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-300">Open Sensor Telemetry</div>
                   <div className="mt-2 text-base font-black text-white">Go To Monitoring Dashboard</div>
                 </button>
-                <div className="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm">
+                <div className="app-subcard px-4 py-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Overall Status</p>
                   <p className="mt-2 text-lg font-black text-foreground">{overallStatus.label}</p>
                   <p className="mt-1 text-sm font-medium text-slate-500">{overallStatus.subtitle}</p>
@@ -138,11 +138,11 @@ export default function OverviewPage() {
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-              <section className="rounded-3xl border border-slate-300 bg-card p-5 shadow-md">
-                <div className="flex items-center justify-between gap-4 mb-5">
+              <section className="app-card">
+                <div className="app-section-header">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.28em] text-slate-400">Location Site</p>
-                    <h3 className="mt-2 text-xl font-black text-foreground">Node deployment overview</h3>
+                    <p className="app-eyebrow">Location Site</p>
+                    <h3 className="app-section-title">Node deployment overview</h3>
                   </div>
                   <PreviewLink icon={<MapPin size={14} />} label="Open locations" onClick={() => navigate("/locations")} />
                 </div>
@@ -203,7 +203,7 @@ export default function OverviewPage() {
 
 function OverviewMetricCard({ title, value, subtitle, icon }) {
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-md">
+    <div className="app-subcard shadow-md">
       <div className="mb-4 flex items-start justify-between gap-3">
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{title}</h4>
         <div className="rounded-xl bg-slate-100 p-2.5 text-slate-700">
@@ -218,11 +218,11 @@ function OverviewMetricCard({ title, value, subtitle, icon }) {
 
 function PreviewPanel({ eyebrow, title, actionLabel, actionIcon, onAction, children }) {
   return (
-    <section className="rounded-3xl border border-slate-300 bg-card p-5 shadow-md">
-      <div className="flex items-center justify-between gap-4 mb-5">
+    <section className="app-card">
+      <div className="app-section-header">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-slate-400">{eyebrow}</p>
-          <h3 className="mt-2 text-xl font-black text-foreground">{title}</h3>
+          <p className="app-eyebrow">{eyebrow}</p>
+          <h3 className="app-section-title">{title}</h3>
         </div>
         <PreviewLink icon={actionIcon} label={actionLabel} onClick={onAction} />
       </div>
@@ -236,7 +236,7 @@ function PreviewLink({ icon, label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full border border-[#003a5a] bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md transition hover:brightness-110"
+      className="app-action-button"
     >
       {icon}
       {label}

@@ -38,14 +38,14 @@ export default function LocationsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto">
-      <header className="mb-2">
-        <p className="text-sm text-muted-foreground font-medium mt-1">Sensor nodes deployed in the field, shown with status, coordinates, and water levels.</p>
+    <div className="app-page-stack">
+      <header className="app-page-header">
+        <p className="app-page-copy">Sensor nodes deployed in the field, shown with status, coordinates, and water levels.</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <section className="space-y-6">
-          <div className="rounded-3xl border border-slate-300 bg-card p-6 shadow-md">
+          <div className="app-card p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Overview</p>
@@ -70,16 +70,16 @@ export default function LocationsPage() {
         </section>
 
         <aside className="space-y-6">
-          <div className="rounded-3xl border border-slate-300 bg-card p-6 shadow-md">
+          <div className="app-card p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">Spatial insight</p>
             <p className="text-sm leading-6 text-muted-foreground">
               This view displays deployed sensor nodes with their current water level, reported location, and connectivity status. Use it like a weather station map for flood monitoring.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-300 bg-card p-6 shadow-md">
+          <div className="app-card p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-4">Last sync</p>
-            <div className="rounded-3xl border border-slate-200 bg-white/90 p-4 text-sm font-semibold text-foreground">
+            <div className="app-subcard rounded-3xl text-sm font-semibold text-foreground">
               {lastUpdate}
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function LocationsPage() {
 
 function SummaryTile({ label, value, icon }) {
   return (
-    <div className="rounded-3xl border border-slate-300 bg-white px-4 py-3 shadow-md flex items-center gap-3">
+    <div className="app-subcard rounded-3xl px-4 py-3 shadow-md flex items-center gap-3">
       <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
         {icon}
       </div>

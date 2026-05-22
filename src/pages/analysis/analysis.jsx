@@ -152,10 +152,10 @@ export default function Analysis() {
   const showData = !loading && !error;
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8">
-          <p className="text-muted-foreground">
+    <div className="app-page-stack">
+      <div className="max-w-6xl">
+        <header className="app-page-header">
+          <p className="app-page-copy">
             Neural Network Forecast (LSTM Model) based on Node 1 & Node 2 telemetry.
           </p>
           {loading && (
@@ -176,7 +176,7 @@ export default function Analysis() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-t-4 border-t-purple-500">
+          <Card className="app-card border-t-4 border-t-purple-500 p-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Forecast Reliability</CardTitle>
             </CardHeader>
@@ -186,7 +186,7 @@ export default function Analysis() {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-red-500">
+          <Card className="app-card border-t-4 border-t-red-500 p-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Projected Peak</CardTitle>
             </CardHeader>
@@ -196,7 +196,7 @@ export default function Analysis() {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-blue-500">
+          <Card className="app-card border-t-4 border-t-blue-500 p-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Risk Status</CardTitle>
             </CardHeader>
@@ -209,7 +209,7 @@ export default function Analysis() {
 
         {/* MAIN CHART SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 shadow-sm">
+          <Card className="app-card lg:col-span-2 p-0">
             <CardHeader>
               <CardTitle>Node 2 Water Level Forecast</CardTitle>
             </CardHeader>
@@ -251,7 +251,7 @@ export default function Analysis() {
               </AlertDescription>
             </Alert>
 
-            <Card>
+            <Card className="app-card p-0">
               <CardHeader>
                 <CardTitle className="text-sm">Model Inputs</CardTitle>
               </CardHeader>

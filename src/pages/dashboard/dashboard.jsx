@@ -79,7 +79,6 @@ export default function Dashboard() {
 
   const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [isViewSwitching, setIsViewSwitching] = useState(false);
   const routeToView = useMemo(() => ({
     "/dashboard": "dashboard",
     "/geospatial-status": "locations",
@@ -140,12 +139,6 @@ export default function Dashboard() {
   }, [selectedDate, todayStr, system]);
 
   useEffect(() => {
-    setIsViewSwitching(true);
-    const timeoutId = window.setTimeout(() => setIsViewSwitching(false), 180);
-    return () => window.clearTimeout(timeoutId);
-  }, [activeView]);
-
-  useEffect(() => {
     if (location.hash !== "#sensor-telemetry") return;
     const timeoutId = window.setTimeout(() => {
       document.getElementById("sensor-telemetry")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -172,13 +165,12 @@ export default function Dashboard() {
       <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
         <Header title={headerTitle} />
 
-        <div className="pt-6 md:pt-8">
-        {isViewSwitching ? <AppLoader label="Loading View..." /> : (
+        <div className="app-page-container">
           <>
         {activeView === 'dashboard' && (
-          <div className="space-y-6 max-w-[1600px] mx-auto">
-            <header className="mb-8">
-              <p className="text-sm text-muted-foreground font-medium mt-1">Real-time metrics and historical rainfall data.</p>
+          <div className="app-page-stack">
+            <header className="app-page-header">
+              <p className="app-page-copy">Real-time metrics and historical rainfall data.</p>
             </header>
 
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -198,7 +190,7 @@ export default function Dashboard() {
 
             <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-            <div id="sensor-telemetry" className="mt-8 bg-card text-card-foreground p-4 sm:p-6 rounded-2xl border border-slate-300 shadow-md relative overflow-hidden">
+            <div id="sensor-telemetry" className="app-card mt-8 p-4 sm:p-6 relative overflow-hidden">
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Sensor Telemetry</h3>
                 
@@ -242,7 +234,6 @@ export default function Dashboard() {
 
         {activeView === 'settings' && <SettingsPage />}
           </>
-        )}
         </div>
 
       </main>
@@ -325,13 +316,13 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
   const isOffline = status === 'offline';
   
   return (
-    <div className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
+    <div className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
       isOffline 
         ? darkTheme
-          ? 'opacity-90 border-slate-400 shadow-md bg-white text-slate-700'
+          ? 'opacity-90 text-slate-700'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
         : darkTheme
-          ? 'border-slate-400 shadow-md bg-white text-foreground hover:border-white/10 hover:bg-gradient-to-b hover:from-[#004f7a] hover:via-[#00456c] hover:to-[#003250] hover:text-white hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
+          ? 'text-foreground hover:border-white/10 hover:bg-gradient-to-b hover:from-[#004f7a] hover:via-[#00456c] hover:to-[#003250] hover:text-white hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
           : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
@@ -387,7 +378,7 @@ function NodeSummaryCard({ title, node }) {
   const hoverTone = getNodeHoverTone(status, isOffline);
 
   return (
-    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-slate-300 shadow-md transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
+    <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
       isOffline
         ? ""
         : hoverTone

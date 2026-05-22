@@ -68,3 +68,45 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .app-page-container {
+    @apply pt-6 md:pt-8;
+  }
+
+  .app-page-stack {
+    @apply mx-auto max-w-[1600px] space-y-6;
+  }
+
+  .app-page-header {
+    @apply mb-8;
+  }
+
+  .app-page-copy {
+    @apply mt-1 text-sm font-medium text-muted-foreground;
+  }
+
+  .app-card {
+    @apply rounded-3xl border border-slate-300 bg-card p-5 shadow-md;
+  }
+
+  .app-subcard {
+    @apply rounded-2xl border border-slate-300 bg-white p-4 shadow-sm;
+  }
+
+  .app-section-header {
+    @apply mb-5 flex items-center justify-between gap-4;
+  }
+
+  .app-eyebrow {
+    @apply text-xs font-black uppercase tracking-[0.28em] text-slate-400;
+  }
+
+  .app-section-title {
+    @apply mt-2 text-xl font-black text-foreground;
+  }
+
+  .app-action-button {
+    @apply inline-flex items-center gap-2 rounded-full border border-[#003a5a] bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md transition hover:brightness-110;
+  }
+}
