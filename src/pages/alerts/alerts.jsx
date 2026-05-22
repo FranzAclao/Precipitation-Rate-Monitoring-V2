@@ -1,13 +1,13 @@
 import React from "react";
 import { Activity, Clock, ShieldCheck } from "lucide-react";
 import { useFloodData } from "@/hooks/useFloodData";
-import PageSkeleton from "@/components/PageSkeleton.jsx";
+import { AppLoader } from "@/components/AppLoader.jsx";
 
 export default function AlertsPage() {
   const { rain, node1, node2, loading } = useFloodData();
 
   if (loading) {
-    return <PageSkeleton cards={0} rows={6} />;
+    return <AppLoader label="Loading Alerts..." />;
   }
 
   return (

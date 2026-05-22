@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useFloodData } from "@/hooks/useFloodData";
 import Map from "@/components/map";
-import PageSkeleton from "@/components/PageSkeleton.jsx";
+import { AppLoader } from "@/components/AppLoader.jsx";
 import LocationCard from "./LocationCard";
 import { MapPin, Droplet, Clock, Signal } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default function LocationsPage() {
   }, [locationNodes]);
 
   if (loading) {
-    return <PageSkeleton cards={3} rows={3} compact />;
+    return <AppLoader label="Loading Sensor Nodes..." />;
   }
 
   return (
