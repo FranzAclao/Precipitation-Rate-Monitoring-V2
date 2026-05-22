@@ -90,7 +90,7 @@ export default function Dashboard() {
   }), []);
   const activeView = routeToView[location.pathname] || "dashboard";
   const viewTitles = useMemo(() => ({
-    dashboard: "Dashboard",
+    dashboard: "Monitoring Dashboard",
     locations: "Sensor Nodes",
     data: "Data Logs",
     analysis: "ML Analysis",
