@@ -39,7 +39,7 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="space-y-4 p-6 rounded-2xl bg-card text-card-foreground shadow-sm border border-border">
+      <div className="space-y-4 p-6 rounded-2xl bg-card text-card-foreground shadow-md border border-slate-300">
         <p className="text-sm text-muted-foreground">No user data available.</p>
       </div>
     );
@@ -59,7 +59,7 @@ export default function SettingsPage() {
 
       <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
         <div className="space-y-6">
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="bg-card text-card-foreground rounded-3xl border border-slate-300 p-6 shadow-md">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Profile</p>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="bg-card text-card-foreground rounded-3xl border border-slate-300 p-6 shadow-md">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Appearance</p>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
         </div>
 
         <aside className="space-y-6">
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="bg-card text-card-foreground rounded-3xl border border-slate-300 p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Account</p>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
 
 function InfoCard({ title, value }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <div className="rounded-3xl border border-slate-300 bg-white p-5 shadow-md">
       <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">{title}</p>
       <p className="text-sm font-semibold text-foreground leading-6 break-words">{value}</p>
     </div>

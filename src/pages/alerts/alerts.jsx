@@ -16,7 +16,7 @@ export default function AlertsPage() {
         <p className="text-sm text-muted-foreground font-medium">Alerts, diagnostics, and system logs.</p>
       </header>
 
-      <div className="bg-card text-card-foreground p-6 rounded-2xl shadow-sm border border-border max-w-3xl">
+      <div className="bg-card text-card-foreground p-6 rounded-2xl shadow-md border border-slate-300 max-w-3xl">
         <h3 className="font-black text-foreground mb-6 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
           Active Alerts
@@ -34,7 +34,7 @@ export default function AlertsPage() {
           <AlertItem type="normal" msg="Cloud Sync: 100% Active. Firebase connection secured." />
         </div>
 
-        <div className="mt-8 p-5 bg-muted rounded-xl border border-border">
+        <div className="mt-8 p-5 bg-muted rounded-xl border border-slate-300 shadow-sm">
           <p className="text-[10px] text-muted-foreground font-bold uppercase mb-2 tracking-tighter">AI Quick Summary</p>
           <p className="text-sm text-foreground/80 leading-relaxed font-medium">
             System is currently monitoring 2 key nodes. Rainfall is currently <span className="text-blue-600 font-bold">{rain.intensity}</span>. No immediate flood threat detected in the next 30 minutes based on upstream data.
@@ -53,7 +53,7 @@ function AlertItem({ type, msg }) {
   };
 
   return (
-    <div className={`p-4 rounded-xl border text-sm font-bold shadow-sm transition-all flex items-start gap-3 ${styles[type]}`}>
+    <div className={`p-4 rounded-xl border text-sm font-bold shadow-md transition-all flex items-start gap-3 ${styles[type]}`}>
       {type === "critical" && <Activity className="w-5 h-5 text-red-500 shrink-0" />}
       {type === "warning" && <Clock className="w-5 h-5 text-amber-500 shrink-0" />}
       {type === "normal" && <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />}

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
+import OverviewPage from './pages/overview/overview.jsx'
 import Dashboard from './pages/dashboard/dashboard.jsx'
 import Login from './pages/auth/login.jsx'
 import Signup from './pages/auth/signup.jsx'
@@ -30,7 +31,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><OverviewPage /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/geospatial-status" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/locations" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/data" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -81,7 +81,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [isViewSwitching, setIsViewSwitching] = useState(false);
   const routeToView = useMemo(() => ({
-    "/": "overview",
+    "/dashboard": "dashboard",
     "/geospatial-status": "locations",
     "/locations": "locations",
     "/data": "data",
@@ -89,16 +89,16 @@ export default function Dashboard() {
     "/alerts": "alerts",
     "/settings": "settings",
   }), []);
-  const activeView = routeToView[location.pathname] || "overview";
+  const activeView = routeToView[location.pathname] || "dashboard";
   const viewTitles = useMemo(() => ({
-    overview: "Dashboard",
+    dashboard: "Dashboard",
     locations: "Sensor Nodes",
     data: "Data Logs",
     analysis: "ML Analysis",
     alerts: "Alerts",
     settings: "Settings",
   }), []);
-  const headerTitle = viewTitles[activeView] || "Overview";
+  const headerTitle = viewTitles[activeView] || "Dashboard";
 
   const chartData = useMemo(() => {
     if (!allLogs || allLogs.length === 0) return [];
@@ -145,6 +145,14 @@ export default function Dashboard() {
     return () => window.clearTimeout(timeoutId);
   }, [activeView]);
 
+  useEffect(() => {
+    if (location.hash !== "#sensor-telemetry") return;
+    const timeoutId = window.setTimeout(() => {
+      document.getElementById("sensor-telemetry")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 220);
+    return () => window.clearTimeout(timeoutId);
+  }, [location.hash, activeView]);
+
   if (loading) return (
     <div className="flex h-screen flex-col items-center justify-center bg-background text-muted-foreground font-medium">
       <div className="relative flex h-12 w-12 mb-4">
@@ -167,13 +175,12 @@ export default function Dashboard() {
         <div className="pt-6 md:pt-8">
         {isViewSwitching ? <PageSkeleton /> : (
           <>
-        {activeView === 'overview' && (
+        {activeView === 'dashboard' && (
           <div className="space-y-6 max-w-[1600px] mx-auto">
             <header className="mb-8">
               <p className="text-sm text-muted-foreground font-medium mt-1">Real-time metrics and historical rainfall data.</p>
             </header>
 
-            {/* Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
               <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="In total" icon={<Droplets className="w-5 h-5" />} darkTheme />
@@ -191,8 +198,7 @@ export default function Dashboard() {
 
             <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-            {/* Chart Area */}
-            <div className="mt-8 bg-card text-card-foreground p-4 sm:p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+            <div id="sensor-telemetry" className="mt-8 bg-card text-card-foreground p-4 sm:p-6 rounded-2xl border border-slate-300 shadow-md relative overflow-hidden">
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Sensor Telemetry</h3>
                 
@@ -244,7 +250,6 @@ export default function Dashboard() {
   );
 }
 
-
 function NavItem({ icon, label, isActive, onClick, badge }) {
   return (
     <button
@@ -286,7 +291,7 @@ function WaterLevelSection({ node1, node2 }) {
       <div className="space-y-5">
         <div className="water-level-header">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Overview</h2>
+            <h2 className="text-xl font-black tracking-tight text-foreground md:text-2xl">Water Level Overview</h2>
             <p className="water-level-subtitle">Monitor the canal water level status.</p>
             <div className="water-level-status-row">
             </div>
@@ -323,25 +328,25 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
     <div className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
       isOffline 
         ? darkTheme
-          ? 'opacity-90 border-white/10 bg-white/10 text-slate-200'
+          ? 'opacity-90 border-slate-400 shadow-md bg-white text-slate-700'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
         : darkTheme
-          ? 'border-white/10 bg-gradient-to-b from-[#004f7a] via-[#00456c] to-[#003250] text-white hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
+          ? 'border-slate-400 shadow-md bg-white text-foreground hover:border-white/10 hover:bg-gradient-to-b hover:from-[#004f7a] hover:via-[#00456c] hover:to-[#003250] hover:text-white hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
           : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
       <div className="flex justify-between items-start mb-4">
-        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${darkTheme ? 'text-slate-300' : 'text-muted-foreground'}`}>
+        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${darkTheme ? 'text-slate-400 group-hover:text-slate-300' : 'text-muted-foreground'}`}>
           {title}
         </h3>
         
         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
           isOffline 
             ? darkTheme
-              ? 'bg-white/10 text-slate-300'
+              ? 'bg-slate-100 text-slate-500'
               : 'bg-muted text-muted-foreground'
             : darkTheme
-              ? 'bg-white/10 text-white group-hover:bg-white/15'
+              ? 'bg-slate-100 text-slate-700 group-hover:bg-white/10 group-hover:text-white'
               : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
@@ -351,8 +356,8 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
       <div>
         <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
           isOffline
-            ? darkTheme ? 'text-slate-200' : 'text-muted-foreground'
-            : darkTheme ? 'text-white' : 'text-foreground'
+            ? darkTheme ? 'text-slate-600' : 'text-muted-foreground'
+            : darkTheme ? 'text-foreground group-hover:text-white' : 'text-foreground'
         }`}>
           {value}
         </div>
@@ -363,7 +368,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-300' : 'text-muted-foreground'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-300' : 'text-muted-foreground'}`}>
               {subtitle}
             </p>
           )}
@@ -382,7 +387,7 @@ function NodeSummaryCard({ title, node }) {
   const hoverTone = getNodeHoverTone(status, isOffline);
 
   return (
-    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
+    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-slate-300 shadow-md transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
       isOffline
         ? ""
         : hoverTone
