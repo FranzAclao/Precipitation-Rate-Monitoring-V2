@@ -185,14 +185,14 @@
 .water-level-warning {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin-top: 0.65rem;
   border: 1px solid rgb(248 113 113);
   border-radius: 9999px;
   background: rgb(254 242 242);
   color: rgb(185 28 28);
-  padding: 0.3rem 0.7rem;
-  font-size: 0.72rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
   font-weight: 900;
   line-height: 1;
 }

@@ -175,8 +175,8 @@ export default function Dashboard() {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
-              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} darkTheme />
+              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
+              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="In total" icon={<Droplets className="w-5 h-5" />} darkTheme />
               {telemetryMetrics.map((metric) => (
                 <MetricCard
                   key={metric.title}
@@ -273,8 +273,8 @@ function NavItem({ icon, label, isActive, onClick, badge }) {
 
 function WaterLevelSection({ node1, node2 }) {
   const nodes = [
-    { key: "node1", title: "Node 1", node: node1 },
-    { key: "node2", title: "Node 2", node: node2 },
+    { key: "node1", title: "Zone 1", node: node1 },
+    { key: "node2", title: "Zone 5", node: node2 },
   ];
   const sectionRisk = getSectionRisk(node1, node2);
   const showAlertBanner = !["SAFE", "MONITORING"].includes(sectionRisk);
@@ -286,7 +286,7 @@ function WaterLevelSection({ node1, node2 }) {
       <div className="space-y-5">
         <div className="water-level-header">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Monitor</h2>
+            <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Overview</h2>
             <p className="water-level-subtitle">Monitor the canal water level status.</p>
             <div className="water-level-status-row">
             </div>
@@ -392,17 +392,17 @@ function NodeSummaryCard({ title, node }) {
           <p className="water-level-node-title">{title}</p>
           <p className="water-level-value-label">Current water level</p>
           <p className="mt-1.5 text-2xl font-black tracking-tight text-foreground">{formatNodeLevel(node)}</p>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
+            <Waves className="w-5 h-5" />
+          </div>
           {hasExceededLevel && (
             <div className="water-level-warning">
               <AlertTriangle className="h-3.5 w-3.5" />
               Water level exceeded 55 cm
             </div>
           )}
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
-            <Waves className="w-5 h-5" />
-          </div>
         </div>
       </div>
       <div className="water-level-mini-grid">
