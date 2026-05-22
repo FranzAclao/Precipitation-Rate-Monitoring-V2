@@ -6,7 +6,7 @@ import DataLogs from "@/pages/datalogs/data";
 import AnalysisPage from "@/pages/analysis/analysis";
 import AlertsPage from "@/pages/alerts/alerts.jsx";
 import { 
-  CloudRain, Waves, Activity, Clock, Droplets, Calendar, 
+  CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
   RefreshCcw
 } from "lucide-react";
 import { Header } from "@/components/Header.jsx";
@@ -14,6 +14,46 @@ import PageSkeleton from "@/components/PageSkeleton.jsx";
 import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
+import CanalSvg from "@/components/CanalSvg.jsx";
+import "./dashboard.css";
+
+const LEVEL_META = {
+  SAFE: {
+    pill: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    solid: "border-sky-500 bg-sky-500 text-white",
+    water: "from-emerald-200 via-emerald-300 to-emerald-400",
+    surface: "#bbf7d0",
+    marker: "bg-emerald-500",
+  },
+  WATCH: {
+    pill: "border-yellow-200 bg-yellow-50 text-amber-700",
+    solid: "border-yellow-400 bg-yellow-400 text-slate-950",
+    water: "from-yellow-200 via-yellow-300 to-amber-300",
+    surface: "#fde68a",
+    marker: "bg-amber-400",
+  },
+  CAUTION: {
+    pill: "border-orange-200 bg-orange-50 text-orange-700",
+    solid: "border-orange-500 bg-orange-500 text-white",
+    water: "from-orange-200 via-orange-300 to-orange-400",
+    surface: "#fdba74",
+    marker: "bg-orange-500",
+  },
+  DANGER: {
+    pill: "border-red-200 bg-red-50 text-red-700",
+    solid: "border-red-500 bg-red-500 text-white",
+    water: "from-red-200 via-red-300 to-red-400",
+    surface: "#fca5a5",
+    marker: "bg-red-500",
+  },
+  MONITORING: {
+    pill: "border-slate-200 bg-slate-50 text-slate-700",
+    solid: "border-slate-400 bg-slate-400 text-white",
+    water: "from-sky-200 via-sky-300 to-sky-400",
+    surface: "#bae6fd",
+    marker: "bg-slate-400",
+  },
+};
 
 export default function Dashboard() {
   const { rain, node1, node2, nodes, node1History, node2History, history, allLogs, lastUpdate, loading } = useFloodData();
@@ -71,7 +111,7 @@ export default function Dashboard() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-      <main className="flex-1 overflow-y-auto bg-background p-6 md:p-10 animate-in fade-in duration-500">
+      <main className="flex-1 overflow-y-auto bg-background p-6 md:px-12 md:py-10 lg:px-14 animate-in fade-in duration-500">
         <Header title={headerTitle} />
 
         {isViewSwitching ? <PageSkeleton /> : (
@@ -83,14 +123,13 @@ export default function Dashboard() {
             </header>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={rain.source} icon={<CloudRain className="w-5 h-5" />} />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} />
               <MetricCard title="Rainfall (1hr)" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
-              <MetricCard title="Node 1 Level" value={node1.level} subtitle={node1.label} status={node1.status} icon={<Waves className="w-5 h-5" />} />
-              <MetricCard title="Node 2 Level" value={node2.level} subtitle={node2.label} status={node2.status} icon={<Waves className="w-5 h-5" />} />
-              <MetricCard title="Flood Risk" value="MODERATE" subtitle="62% Prob." icon={<Activity className="w-5 h-5" />} />
               <MetricCard title="System Mode" value={selectedDate === todayStr ? "LIVE" : "ARCHIVE"} subtitle="Status" icon={<Clock className="w-5 h-5" />} />
             </div>
+
+            <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
             {/* Chart Area */}
             <div className="mt-8 bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
@@ -171,6 +210,52 @@ function NavItem({ icon, label, isActive, onClick, badge }) {
   );
 }
 
+function WaterLevelSection({ node1, node2 }) {
+  const nodes = [
+    { key: "node1", title: "Node 1", node: node1 },
+    { key: "node2", title: "Node 2", node: node2 },
+  ];
+  const sectionRisk = getSectionRisk(node1, node2);
+  const showAlertBanner = !["SAFE", "MONITORING"].includes(sectionRisk);
+  const riskMeta = getLevelMeta(sectionRisk);
+  const sectionUpdatedAt = getSectionLastUpdated(node1, node2);
+
+  return (
+    <section className="water-level-section">
+      <div className="space-y-5">
+        <div className="water-level-header">
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Monitor</h2>
+            <p className="water-level-subtitle">Monitor the canal water level status.</p>
+            <div className="water-level-status-row">
+              <div className="water-level-chip">Last updated: {sectionUpdatedAt}</div>
+            </div>
+          </div> 
+          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${riskMeta.solid}`}>
+                <AlertTriangle className="h-4 w-4" />
+                Overall Status: {getDisplayStatusName(sectionRisk)}
+              </div>
+        </div>
+        <div className="water-level-summary-grid">
+          {nodes.map((item) => (
+            <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
+          ))}
+        </div>
+
+        <div className="water-level-bottom-grid">
+          <FloodRiskStack activeLevel={sectionRisk} maxLevel={getGuideMaxLevel(node1, node2)} />
+
+          <div className="water-level-canal-grid">
+            {nodes.map((item) => (
+              <CanalPanel key={item.key} title={item.title} node={item.node} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function MetricCard({ title, value, subtitle, icon, status }) {
   const isOffline = status === 'offline';
   
@@ -214,4 +299,346 @@ function MetricCard({ title, value, subtitle, icon, status }) {
       </div>
     </div>
   );
+}
+
+function NodeSummaryCard({ title, node }) {
+  const status = getNodeStatus(node);
+  const trend = getNodeTrend(node);
+  const hasExceededLevel = isAboveWaterLevelLimit(node);
+  const isOffline = node?.status === "offline";
+  const iconTone = getNodeIconTone(status, isOffline);
+  const hoverTone = getNodeHoverTone(status, isOffline);
+
+  return (
+    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[198px] group ${
+      isOffline
+        ? "opacity-80 bg-muted/60"
+        : hoverTone
+    }`}>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <p className="water-level-node-title">{title}</p>
+          <p className="water-level-value-label">Current water level</p>
+          <p className="mt-1.5 text-2xl font-black tracking-tight text-foreground">{formatNodeLevel(node)}</p>
+          {hasExceededLevel && (
+            <div className="water-level-warning">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Water level exceeded 55 cm
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
+            <Waves className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+      <div className="water-level-mini-grid">
+        <NodeMiniStat label="Level Status" value={status.badge} tone={status.meta.text} />
+        <NodeMiniStat label="Trend" value={trend.value} tone={trend.tone} />
+        <NodeMiniStat label="Last Updated" value={formatNodeTime(node?.timestamp)} />
+      </div>
+    </div>
+  );
+}
+
+function NodeMiniStat({ label, value, tone = "text-foreground" }) {
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+      <p className={`mt-2 text-sm font-black tracking-tight ${tone}`}>{value}</p>
+    </div>
+  );
+}
+
+function FloodRiskStack({ activeLevel, maxLevel }) {
+  const levels = [
+    {
+      key: "DANGER",
+      label: "Flood Risk",
+      description: "Possible overflow",
+      tint: "bg-[#eb3434] border-[#c62828]",
+      text: "text-white",
+      subtext: "text-white/90",
+      current: "text-red-700",
+      icon: AlertTriangle,
+    },
+    {
+      key: "CAUTION",
+      label: "Caution",
+      description: "Elevated level",
+      tint: "bg-[#f59b00] border-[#d98200]",
+      text: "text-white",
+      subtext: "text-white/90",
+      current: "text-orange-700",
+      icon: CircleAlert,
+    },
+    {
+      key: "WATCH",
+      label: "Watch",
+      description: "Monitor closely",
+      tint: "bg-[#ffd54a] border-[#e0b93c]",
+      text: "text-slate-950",
+      subtext: "text-slate-800",
+      current: "text-amber-700",
+      icon: Eye,
+    },
+    {
+      key: "SAFE",
+      label: "Safe",
+      description: "Normal water level",
+      tint: "bg-[#9edcff] border-[#68b9e8]",
+      text: "text-slate-950",
+      subtext: "text-slate-800",
+      current: "text-sky-700",
+      icon: Check,
+    },
+  ];
+
+  return (
+    <div className="water-level-card">
+      <div className="mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status Guide</p>
+        <p className="mt-2 text-lg font-black tracking-tight text-foreground">Water level Status</p>
+      </div>
+      <div className="water-level-guide">
+        {levels.map((level) => {
+          const isActive = normalizeLevelLabel(activeLevel) === level.key;
+          const Icon = level.icon;
+          return (
+            <div
+              key={level.key}
+              className={`water-level-guide-item transition-all ${level.tint} ${isActive ? "shadow-[0_0_0_1px_rgba(15,23,42,0.08),0_10px_24px_rgba(15,23,42,0.12)] ring-1 ring-black/10" : "shadow-sm"}`}
+            >
+              <div className="water-level-guide-copy">
+                <div className="water-level-guide-top">
+                  <div className="water-level-guide-status">
+                    <span className="water-level-guide-icon">
+                      <Icon className={`h-4 w-4 ${level.text}`} />
+                    </span>
+                    <p className={`text-base font-black tracking-tight ${level.text}`}>{level.label}</p>
+                  </div>
+                </div>
+                <p className={`water-level-guide-threshold ${level.subtext}`}>{getGuideThresholdText(level.key, maxLevel)}</p>
+                <p className={`water-level-guide-description ${level.subtext}`}>{level.description}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CanalPanel({ title, node }) {
+  const status = getNodeStatus(node);
+  const canalStatus = getCanalStatusValue(status);
+  const hasExceededLevel = isAboveWaterLevelLimit(node);
+
+  return (
+    <div className="water-level-card">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="water-level-node-title">{title}</p>
+          <p className="mt-2 text-lg font-black tracking-tight text-foreground">Canal View</p>
+        </div>
+      </div>
+      {hasExceededLevel && (
+        <div className="water-level-warning">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Water level exceeded 55 cm
+        </div>
+      )}
+
+      <div className="water-level-visual">
+        <CanalSvg
+          level={node?.level}
+          maxLevel={node?.maxLevel}
+          status={canalStatus}
+          hasData={status.hasData}
+        />
+
+      </div>
+      <p className="water-level-note">
+        {status.hasData ? getStatusDescription(canalStatus) : "Awaiting telemetry from this monitoring node."}
+      </p>
+    </div>
+  );
+}
+
+function toLevelNumber(level) {
+  const value = Number.parseFloat(level);
+  return Number.isFinite(value) ? value : null;
+}
+
+function getNodeUnit(node) {
+  const maxLevel = toLevelNumber(node?.maxLevel);
+  return maxLevel && maxLevel > 10 ? "cm" : "m";
+}
+
+function formatNodeLevel(node) {
+  if (node?.status === "offline") return "NO DATA";
+  return formatDepth(node?.level, getNodeUnit(node));
+}
+
+function getNodeTrend(node) {
+  if (node?.status === "offline") {
+    return { value: "No live data", tone: "text-muted-foreground" };
+  }
+
+  const fillRatio = toLevelNumber(node?.fillRatio);
+  if (fillRatio === null) return { value: "Stable", tone: "text-slate-600" };
+  if (fillRatio >= 0.85) return { value: "Rising", tone: "text-red-600" };
+  if (fillRatio >= 0.65) return { value: "Rising", tone: "text-orange-600" };
+  if (fillRatio >= 0.4) return { value: "Stable", tone: "text-amber-600" };
+  return { value: "Stable", tone: "text-emerald-600" };
+}
+
+function getNodeStatus(node) {
+  const hasData = node?.status !== "offline" && toLevelNumber(node?.level) !== null;
+  const normalized = hasData ? normalizeLevelLabel(node?.label) : "MONITORING";
+  const badge = hasData ? getDisplayStatusName(normalized) : "NO DATA";
+  const label = hasData ? `${getDisplayStatusName(normalized)} status` : "No data";
+
+  return {
+    hasData,
+    normalized,
+    badge,
+    label,
+    meta: hasData ? getLevelMeta(normalized) : {
+      pill: "border-slate-200 bg-slate-50 text-slate-600",
+      solid: "border-slate-400 bg-slate-400 text-white",
+      water: "from-slate-200 via-slate-200 to-slate-300",
+      surface: "#e5e7eb",
+      marker: "bg-slate-400",
+      text: "text-slate-600",
+    },
+  };
+}
+
+function getCanalStatusValue(status) {
+  if (!status?.hasData) return "no-data";
+  if (status.normalized === "DANGER") return "flood-risk";
+  if (status.normalized === "CAUTION") return "caution";
+  if (status.normalized === "WATCH") return "watch";
+  if (status.normalized === "SAFE") return "safe";
+  return "no-data";
+}
+
+function formatNodeTime(timestamp) {
+  if (!timestamp) return "--:--:--";
+  const value = new Date(String(timestamp).replace(" ", "T"));
+  if (Number.isNaN(value.getTime())) return "--:--:--";
+  return value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
+function formatDepth(value, unit) {
+  const numeric = toLevelNumber(value);
+  if (numeric === null) return "--";
+  return `${numeric.toFixed(2)} ${unit}`;
+}
+
+function normalizeLevelLabel(label) {
+  const normalized = String(label || "MONITORING").trim().toUpperCase();
+  if (normalized === "WARNING") return "CAUTION";
+  if (LEVEL_META[normalized]) return normalized;
+  return "MONITORING";
+}
+
+function formatLevelName(label) {
+  const normalized = normalizeLevelLabel(label);
+  return normalized.charAt(0) + normalized.slice(1).toLowerCase();
+}
+
+function getDisplayStatusName(label) {
+  const normalized = normalizeLevelLabel(label);
+  if (normalized === "DANGER") return "Flood Risk";
+  return formatLevelName(normalized);
+}
+
+function getLevelMeta(label) {
+  const meta = LEVEL_META[normalizeLevelLabel(label)] || LEVEL_META.MONITORING;
+  if (meta.text) return meta;
+  return {
+    ...meta,
+    text:
+      normalizeLevelLabel(label) === "DANGER" ? "text-red-700"
+        : normalizeLevelLabel(label) === "CAUTION" ? "text-orange-700"
+          : normalizeLevelLabel(label) === "WATCH" ? "text-amber-700"
+            : normalizeLevelLabel(label) === "SAFE" ? "text-emerald-700"
+              : "text-slate-700",
+  };
+}
+
+function getLevelRank(label) {
+  const normalized = normalizeLevelLabel(label);
+  if (normalized === "DANGER") return 4;
+  if (normalized === "CAUTION") return 3;
+  if (normalized === "WATCH") return 2;
+  if (normalized === "SAFE") return 1;
+  return 0;
+}
+
+function getSectionRisk(node1, node2) {
+  const labels = [normalizeLevelLabel(node1?.label), normalizeLevelLabel(node2?.label)];
+  return labels.sort((a, b) => getLevelRank(b) - getLevelRank(a))[0] || "MONITORING";
+}
+
+function isAboveWaterLevelLimit(node) {
+  const level = toLevelNumber(node?.level);
+  const unit = getNodeUnit(node);
+  if (level === null || node?.status === "offline") return false;
+  if (unit !== "cm") return false;
+  return level > 55;
+}
+
+function getNodeIconTone(status, isOffline) {
+  if (isOffline) return "bg-muted text-muted-foreground";
+  if (status?.normalized === "DANGER") return "bg-red-500 text-white";
+  if (status?.normalized === "CAUTION") return "bg-orange-500 text-white";
+  if (status?.normalized === "WATCH") return "bg-yellow-400 text-slate-950";
+  if (status?.normalized === "SAFE") return "bg-sky-500 text-white";
+  return "bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white";
+}
+
+function getNodeHoverTone(status, isOffline) {
+  if (isOffline) return "opacity-80 bg-muted/60";
+  if (status?.normalized === "DANGER") {
+    return "hover:border-red-400/70 hover:shadow-[0_8px_24px_rgba(239,68,68,0.2)] hover:-translate-y-1";
+  }
+  return "hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1";
+}
+
+function getSectionLastUpdated(node1, node2) {
+  const dates = [node1?.timestamp, node2?.timestamp]
+    .map((value) => new Date(String(value || "").replace(" ", "T")))
+    .filter((value) => !Number.isNaN(value.getTime()))
+    .sort((a, b) => b - a);
+  if (dates.length === 0) return "--:--:--";
+  return dates[0].toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
+function getGuideMaxLevel(node1, node2) {
+  const levels = [toLevelNumber(node1?.maxLevel), toLevelNumber(node2?.maxLevel)].filter((value) => value && value > 0);
+  return levels.length ? Math.max(...levels) : null;
+}
+
+function getGuideThresholdText(label, maxLevel) {
+  if (!maxLevel) return "Threshold pending";
+  const watchStart = Math.round(maxLevel * 0.4);
+  const cautionStart = Math.round(maxLevel * 0.65);
+  const floodStart = Math.round(maxLevel * 0.85);
+  if (label === "SAFE") return `< ${watchStart} cm`;
+  if (label === "WATCH") return `${watchStart}-${cautionStart - 1} cm`;
+  if (label === "CAUTION") return `${cautionStart}-${floodStart - 1} cm`;
+  if (label === "DANGER") return `>= ${floodStart} cm`;
+  return "Threshold pending";
+}
+
+function getStatusDescription(status) {
+  if (status === "flood-risk") return "Water level is above the flood-risk threshold.";
+  if (status === "caution") return "Water level is elevated and should be watched closely.";
+  if (status === "watch") return "Water level is within the watch range.";
+  if (status === "safe") return "Water level is within the normal operating range.";
+  return "Awaiting telemetry from this monitoring node.";
 }

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function RainfallChart({ data = [], node1Data = [], node2Data = [] }) {
   const [view, setView] = useState('both');
@@ -25,9 +25,16 @@ export default function RainfallChart({ data = [], node1Data = [], node2Data = [
         if (!timeMap[d.time]) timeMap[d.time] = { time: d.time, sortVal: getMinutes(d.time) };
         
         // If it's a log with nodeId, place it in the correct slot
-        if (d.nodeId === 'node1') timeMap[d.time].node1 = d.rain;
-        else if (d.nodeId === 'node2') timeMap[d.time].node2 = d.rain;
-        else if (nodeKey) timeMap[d.time][nodeKey] = d.rain;
+        if (d.nodeId === 'node1') {
+          timeMap[d.time].node1 = d.rain;
+          timeMap[d.time].node1Level = d.level;
+        } else if (d.nodeId === 'node2') {
+          timeMap[d.time].node2 = d.rain;
+          timeMap[d.time].node2Level = d.level;
+        } else if (nodeKey) {
+          timeMap[d.time][nodeKey] = d.rain;
+          timeMap[d.time][`${nodeKey}Level`] = d.level;
+        }
         else {
           // Fallback for general historical logs
           timeMap[d.time].node1 = d.rain;
@@ -63,14 +70,21 @@ export default function RainfallChart({ data = [], node1Data = [], node2Data = [
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="time" tick={{fontSize: 10, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-              <YAxis unit="mm" tick={{fontSize: 10, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="rain" unit="mm" tick={{fontSize: 10, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="level" orientation="right" unit="cm" tick={{fontSize: 10, fill: '#64748b'}} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
               
               {(view === 'both' || view === 'node1') && (
-                <Area type="monotone" dataKey="node1" stroke="#10b981" fill="url(#colorN1)" strokeWidth={2} connectNulls />
+                <>
+                  <Area yAxisId="rain" type="linear" dataKey="node1" stroke="#10b981" fill="url(#colorN1)" strokeWidth={2} connectNulls />
+                  <Line yAxisId="level" type="linear" dataKey="node1Level" stroke="#f59e0b" strokeWidth={2.5} dot={false} connectNulls />
+                </>
               )}
               {(view === 'both' || view === 'node2') && (
-                <Area type="monotone" dataKey="node2" stroke="#3b82f6" fill="url(#colorN2)" strokeWidth={2} connectNulls />
+                <>
+                  <Area yAxisId="rain" type="linear" dataKey="node2" stroke="#3b82f6" fill="url(#colorN2)" strokeWidth={2} connectNulls />
+                  <Line yAxisId="level" type="linear" dataKey="node2Level" stroke="#ef4444" strokeWidth={2.5} dot={false} connectNulls />
+                </>
               )}
             </AreaChart>
           </ResponsiveContainer>
@@ -78,6 +92,12 @@ export default function RainfallChart({ data = [], node1Data = [], node2Data = [
       </div>
 
       <div className="flex justify-end gap-2 mt-4">
+        <div className="mr-auto flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>Node 1 Rain</span>
+          <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-blue-500"></span>Node 2 Rain</span>
+          <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-amber-500"></span>Node 1 Water Level</span>
+          <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-red-500"></span>Node 2 Water Level</span>
+        </div>
         <div className="flex bg-muted p-1 rounded-lg border border-border">
           <button
             onClick={() => setView('both')}
