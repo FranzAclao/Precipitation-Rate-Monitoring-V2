@@ -175,8 +175,8 @@ export default function Dashboard() {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} />
-              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
+              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
+              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} darkTheme />
               {telemetryMetrics.map((metric) => (
                 <MetricCard
                   key={metric.title}
@@ -184,6 +184,7 @@ export default function Dashboard() {
                   value={metric.value}
                   subtitle={metric.subtitle}
                   icon={<Clock className="w-5 h-5" />}
+                  darkTheme
                 />
               ))}
             </div>
@@ -315,32 +316,44 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status }) {
+function MetricCard({ title, value, subtitle, icon, status, darkTheme = false }) {
   const isOffline = status === 'offline';
   
   return (
-    <div className={`relative bg-card text-card-foreground p-4 sm:p-5 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
+    <div className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
       isOffline 
-        ? 'opacity-80 bg-muted/60' 
-        : 'hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
+        ? darkTheme
+          ? 'opacity-90 border-white/10 bg-white/10 text-slate-200'
+          : 'opacity-80 bg-muted/60 border-border text-card-foreground'
+        : darkTheme
+          ? 'border-white/10 bg-gradient-to-b from-[#004f7a] via-[#00456c] to-[#003250] text-white hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
+          : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${darkTheme ? 'text-slate-300' : 'text-muted-foreground'}`}>
           {title}
         </h3>
         
         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
           isOffline 
-            ? 'bg-muted text-muted-foreground' 
-            : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
+            ? darkTheme
+              ? 'bg-white/10 text-slate-300'
+              : 'bg-muted text-muted-foreground'
+            : darkTheme
+              ? 'bg-white/10 text-white group-hover:bg-white/15'
+              : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
         </div>
       </div>
       
       <div>
-        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${isOffline ? 'text-muted-foreground' : 'text-foreground'}`}>
+        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
+          isOffline
+            ? darkTheme ? 'text-slate-200' : 'text-muted-foreground'
+            : darkTheme ? 'text-white' : 'text-foreground'
+        }`}>
           {value}
         </div>
         <div className="flex items-center gap-1.5 mt-1.5">
@@ -350,7 +363,7 @@ function MetricCard({ title, value, subtitle, icon, status }) {
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-300' : 'text-muted-foreground'}`}>
               {subtitle}
             </p>
           )}
@@ -677,14 +690,10 @@ function getGuideMaxLevel(node1, node2) {
 }
 
 function getGuideThresholdText(label, maxLevel) {
-  if (!maxLevel) return "Threshold pending";
-  const watchStart = Math.round(maxLevel * 0.4);
-  const cautionStart = Math.round(maxLevel * 0.65);
-  const floodStart = Math.round(maxLevel * 0.85);
-  if (label === "SAFE") return `< ${watchStart} cm`;
-  if (label === "WATCH") return `${watchStart}-${cautionStart - 1} cm`;
-  if (label === "CAUTION") return `${cautionStart}-${floodStart - 1} cm`;
-  if (label === "DANGER") return `>= ${floodStart} cm`;
+  if (label === "SAFE") return `< 20 cm`;
+  if (label === "WATCH") return `20-35 cm`;
+  if (label === "CAUTION") return `36-46 cm`;
+  if (label === "DANGER") return `>= 55 cm`;
   return "Threshold pending";
 }
 
