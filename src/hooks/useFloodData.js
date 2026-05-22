@@ -254,10 +254,20 @@ export function useFloodData() {
     const liveRoot = {};
     const unsubs = ALLOWED_NODE_PATHS.map((path) => {
       const nodeRef = ref(database, path);
-      return onValue(nodeRef, (snap) => {
-        liveRoot[path] = snap.val() || {};
-        setData(buildFloodState({ ...liveRoot }));
-      });
+      return onValue(
+        nodeRef,
+        (snap) => {
+          liveRoot[path] = snap.val() || {};
+          setData(buildFloodState({ ...liveRoot }));
+        },
+        (error) => {
+          console.error(`RTDB read failed for ${path}:`, error?.code || error?.message || error);
+          setData((prev) => ({
+            ...prev,
+            loading: false,
+          }));
+        }
+      );
     });
 
     return () => {
