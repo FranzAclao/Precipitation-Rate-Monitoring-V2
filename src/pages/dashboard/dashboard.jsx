@@ -64,8 +64,17 @@ function formatLocalDate(value) {
   return `${year}-${month}-${day}`;
 }
 
+function getTelemetryLabel(reason) {
+  if (reason === "heartbeat_boot") return "System started";
+  if (reason === "heartbeat_dry") return "Dry conditions";
+  if (reason === "rain_event") return "Rain started";
+  if (reason === "periodic_wet") return "Rain ongoing";
+  if (reason === "periodic_dry_window") return "Post-rain monitoring";
+  return "Telemetry live";
+}
+
 export default function Dashboard() {
-  const { rain, node1, node2, allLogs, lastUpdate, loading } = useFloodData();
+  const { rain, system, node1, node2, allLogs, lastUpdate, loading } = useFloodData();
   const location = useLocation();
 
   const todayStr = useMemo(() => formatLocalDate(new Date()), []);
@@ -95,6 +104,40 @@ export default function Dashboard() {
     if (!allLogs || allLogs.length === 0) return [];
     return allLogs.filter(log => log.fullDate === selectedDate);
   }, [selectedDate, allLogs]);
+
+  const telemetryMetrics = useMemo(() => {
+    const detailMap = new Map((system?.details || []).map((item) => [String(item.nodeKey || "").toLowerCase(), item]));
+
+    const buildMetric = (nodeKey, title) => {
+      if (selectedDate !== todayStr) {
+        return {
+          title,
+          value: "ARCHIVE",
+          subtitle: "Historical view",
+        };
+      }
+
+      const detail = detailMap.get(nodeKey);
+      if (!detail) {
+        return {
+          title,
+          value: "No telemetry",
+          subtitle: "Waiting for data",
+        };
+      }
+
+      return {
+        title,
+        value: detail.offline ? "Offline" : getTelemetryLabel(detail.sendReason),
+        subtitle: detail.timestamp || "No timestamp",
+      };
+    };
+
+    return [
+      buildMetric("node1", "Node 1 System Status"),
+      buildMetric("node2", "Node 2 System Status"),
+    ];
+  }, [selectedDate, todayStr, system]);
 
   useEffect(() => {
     setIsViewSwitching(true);
@@ -131,10 +174,18 @@ export default function Dashboard() {
             </header>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} />
-              <MetricCard title="Rainfall (1hr)" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
-              <MetricCard title="System Mode" value={selectedDate === todayStr ? "LIVE" : "ARCHIVE"} subtitle="Status" icon={<Clock className="w-5 h-5" />} />
+              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
+              {telemetryMetrics.map((metric) => (
+                <MetricCard
+                  key={metric.title}
+                  title={metric.title}
+                  value={metric.value}
+                  subtitle={metric.subtitle}
+                  icon={<Clock className="w-5 h-5" />}
+                />
+              ))}
             </div>
 
             <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
@@ -237,7 +288,6 @@ function WaterLevelSection({ node1, node2 }) {
             <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Monitor</h2>
             <p className="water-level-subtitle">Monitor the canal water level status.</p>
             <div className="water-level-status-row">
-              <div className="water-level-chip">Last updated: {sectionUpdatedAt}</div>
             </div>
           </div> 
           <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${riskMeta.solid}`}>
@@ -452,12 +502,6 @@ function CanalPanel({ title, node }) {
           <p className="mt-2 text-lg font-black tracking-tight text-foreground">Canal View</p>
         </div>
       </div>
-      {hasExceededLevel && (
-        <div className="water-level-warning">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          Water level exceeded 55 cm
-        </div>
-      )}
 
       <div className="water-level-visual">
         <CanalSvg
