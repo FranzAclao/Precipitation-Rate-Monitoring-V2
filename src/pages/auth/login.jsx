@@ -121,12 +121,12 @@ export default function Login() {
         </div>
 
         {/* Sign Up Link */}
-        {/* <p className="text-center text-slate-600 text-sm">
+        <p className="text-center text-slate-600 text-sm">
           Don't have an account?{" "}
           <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-semibold">
             Sign up here
           </Link>
-        </p> */}
+        </p>
       </div>
     </div>
   );
