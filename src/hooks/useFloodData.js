@@ -1,170 +1,269 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { database } from "@/lib/firebase";
 
+const DEFAULT_NODE_DEPTHS_CM = {
+  node2: 55,
+};
+
+const ALLOWED_NODE_PATHS = ["Node1", "Node2"];
+
+const DEFAULT_STATE = {
+  rain: { intensity: "--", rate: 0, total1h: 0, status: "loading", source: "Detecting..." },
+  node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
+  node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
+  nodes: [],
+  history: [],
+  node1History: [],
+  node2History: [],
+  allLogs: [],
+  lastUpdate: "--",
+  loading: true,
+};
+
+const LAT_KEYS = ["lat", "Lat", "LAT", "latitude", "Latitude"];
+const LNG_KEYS = ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"];
+
+function parseNumber(value, fallback = 0) {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toNodeId(nodeKey) {
+  return String(nodeKey).toLowerCase().replace(/\s+/g, "");
+}
+
+function getTimestamp(entry) {
+  return entry?.timestamp || entry?.Timestamp || null;
+}
+
+function toDate(value) {
+  if (!value) return null;
+  const parsed = new Date(String(value).replace(" ", "T"));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function checkOffline(timestamp) {
+  const sensorTime = toDate(timestamp);
+  if (!sensorTime) return true;
+  return (Date.now() - sensorTime.getTime()) / (1000 * 60) > 20;
+}
+
+function getRainIntensity(mm) {
+  if (mm === 0) return "NO RAIN";
+  if (mm < 2.5) return "LIGHT";
+  if (mm < 7.6) return "MODERATE";
+  if (mm < 50) return "HEAVY";
+  return "VIOLENT";
+}
+
+function getRainRateValue(entry) {
+  return parseNumber(entry?.rain_gauge?.processed?.rate_mm_per_hr ?? entry?.RainRate ?? 0);
+}
+
+function getRainfallValue(entry) {
+  return parseNumber(entry?.rain_gauge?.processed?.total_mm ?? entry?.Rainfall ?? 0);
+}
+
+function getWaterLevelValue(entry) {
+  return parseNumber(entry?.ultrasonic?.processed?.water_level_cm ?? entry?.WaterLevel ?? 0);
+}
+
+function getMaxWaterLevelValue(entry) {
+  const value = entry?.ultrasonic?.processed?.max_water_level_cm;
+  if (value === undefined || value === null) return null;
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getLevelLabel(entry) {
+  const label = entry?.level_label || entry?.alert_level || entry?.status_label || entry?.LevelLabel;
+  return label ? String(label).toUpperCase() : null;
+}
+
+function deriveLevelLabel(entry) {
+  const explicit = getLevelLabel(entry);
+  if (explicit) return explicit;
+
+  const level = getWaterLevelValue(entry);
+  const maxLevel = getMaxWaterLevelValue(entry);
+  if (!maxLevel || maxLevel <= 0) return "MONITORING";
+
+  const fillRatio = level / maxLevel;
+  if (fillRatio >= 0.85) return "DANGER";
+  if (fillRatio >= 0.65) return "CAUTION";
+  if (fillRatio >= 0.4) return "WATCH";
+  return "SAFE";
+}
+
+function getCoord(entry, keys) {
+  if (!entry) return 0;
+  for (const key of keys) {
+    const num = parseFloat(entry[key]);
+    if (Number.isFinite(num) && num !== 0) return num;
+  }
+  return 0;
+}
+
+function toNodeDisplayName(nodeKey) {
+  const match = /^node\s*(\d+)$/i.exec(String(nodeKey).trim());
+  if (match) return `Sensor Node ${match[1]}`;
+  return `Sensor ${nodeKey}`;
+}
+
+function getNodeDepthFallback(nodeKey) {
+  if (!nodeKey) return null;
+  return DEFAULT_NODE_DEPTHS_CM[toNodeId(nodeKey)] ?? null;
+}
+
+function buildLogEntry(entry, nodeKey) {
+  const timestamp = getTimestamp(entry);
+  const date = toDate(timestamp);
+  if (!timestamp || !date) return null;
+
+  return {
+    timestamp,
+    fullDate: timestamp.split(" ")[0],
+    time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    rain: getRainRateValue(entry),
+    level: getWaterLevelValue(entry),
+    nodeId: toNodeId(nodeKey),
+    nodeKey,
+  };
+}
+
+function getNodeLogs(value, nodeKey) {
+  if (!value) return [];
+  return Object.values(value)
+    .map((entry) => buildLogEntry(entry, nodeKey))
+    .filter(Boolean);
+}
+
+function getLatestEntry(value) {
+  if (!value) return null;
+  const entries = Object.values(value).filter((entry) => toDate(getTimestamp(entry)));
+  if (entries.length === 0) return null;
+  entries.sort((a, b) => toDate(getTimestamp(a)) - toDate(getTimestamp(b)));
+  return entries[entries.length - 1];
+}
+
+function createNodeSummary(nodeKey, latestEntry) {
+  const timestamp = getTimestamp(latestEntry);
+  const offline = checkOffline(timestamp);
+  const level = getWaterLevelValue(latestEntry);
+  const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
+  const fillRatio = maxLevel ? Math.min(level / maxLevel, 1) : 0;
+
+  return {
+    id: nodeKey,
+    key: nodeKey,
+    displayName: toNodeDisplayName(nodeKey),
+    level: offline ? "NO DATA" : level.toFixed(2),
+    label: offline ? "Offline" : deriveLevelLabel(latestEntry),
+    status: offline ? "offline" : "online",
+    timestamp,
+    lat: getCoord(latestEntry, LAT_KEYS),
+    lng: getCoord(latestEntry, LNG_KEYS),
+    rainRate: getRainRateValue(latestEntry),
+    rainfall: getRainfallValue(latestEntry),
+    maxLevel,
+    fillRatio,
+  };
+}
+
+function createPrimaryNodeState(nodeKey, latestEntry) {
+  const timestamp = getTimestamp(latestEntry);
+  const offline = checkOffline(timestamp);
+  const level = getWaterLevelValue(latestEntry);
+  const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
+
+  return {
+    level: offline ? "NO DATA" : level.toFixed(2),
+    label: offline ? "Offline" : deriveLevelLabel(latestEntry),
+    status: offline ? "offline" : "online",
+    timestamp,
+    lat: getCoord(latestEntry, LAT_KEYS),
+    lng: getCoord(latestEntry, LNG_KEYS),
+    maxLevel,
+    fillRatio: maxLevel ? Math.min(level / maxLevel, 1) : 0,
+  };
+}
+
+function buildHistory(logs) {
+  return logs.slice(-12).map((entry) => ({ time: entry.time, rain: entry.rain, level: entry.level }));
+}
+
+function createRainState(rainSourceKey, latestByKey) {
+  const rainNode = rainSourceKey ? latestByKey[rainSourceKey] : null;
+  const rainRate = getRainRateValue(rainNode);
+  const rainfall = getRainfallValue(rainNode);
+  const sourceStatus = rainSourceKey
+    ? (checkOffline(getTimestamp(rainNode)) ? `${rainSourceKey} Offline` : `${rainSourceKey} Active`)
+    : "Detecting...";
+
+  return {
+    intensity: getRainIntensity(rainRate),
+    rate: `${rainRate.toFixed(1)} mm/hr`,
+    total1h: `${rainfall.toFixed(1)}mm`,
+    source: sourceStatus,
+  };
+}
+
+function buildFloodState(root) {
+  const nodeKeys = Object.keys(root).filter((key) => /^node\s*\d+$/i.test(key));
+  const logsByKey = {};
+  const latestByKey = {};
+  const nodes = [];
+
+  for (const nodeKey of nodeKeys) {
+    logsByKey[nodeKey] = getNodeLogs(root[nodeKey], nodeKey);
+    latestByKey[nodeKey] = getLatestEntry(root[nodeKey]);
+    nodes.push(createNodeSummary(nodeKey, latestByKey[nodeKey]));
+  }
+
+  const mergedLogs = Object.values(logsByKey)
+    .flat()
+    .sort((a, b) => toDate(a.timestamp) - toDate(b.timestamp));
+
+  const node1Key = nodeKeys.find((key) => /^node\s*1$/i.test(key));
+  const node2Key = nodeKeys.find((key) => /^node\s*2$/i.test(key));
+  const rainSourceKey = node2Key || node1Key || nodeKeys[0] || null;
+
+  const node1Logs = node1Key ? (logsByKey[node1Key] || []) : [];
+  const node2Logs = node2Key ? (logsByKey[node2Key] || []) : [];
+
+  return {
+    ...DEFAULT_STATE,
+    nodes,
+    rain: createRainState(rainSourceKey, latestByKey),
+    node1: createPrimaryNodeState(node1Key, node1Key ? latestByKey[node1Key] : null),
+    node2: createPrimaryNodeState(node2Key, node2Key ? latestByKey[node2Key] : null),
+    allLogs: mergedLogs,
+    history: buildHistory(node2Logs),
+    node1History: buildHistory(node1Logs),
+    node2History: buildHistory(node2Logs),
+    lastUpdate: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    loading: false,
+  };
+}
+
 export function useFloodData() {
-  const [data, setData] = useState({
-    rain: { intensity: "--", rate: 0, total1h: 0, status: "loading", source: "Detecting..." },
-    node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null },
-    node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null },
-    nodes: [],
-    history: [],
-    node1History: [],
-    node2History: [],
-    allLogs: [],
-    lastUpdate: "--",
-    loading: true,
-  });
-
-  // Memoize expensive functions to prevent recreation on every render
-  const checkOffline = useCallback((timestamp) => {
-    if (!timestamp) return true;
-    const sensorTime = new Date(timestamp.replace(" ", "T"));
-    const now = new Date();
-    return (now - sensorTime) / (1000 * 60) > 20;
-  }, []);
-
-  const getRainIntensity = useCallback((mm) => {
-    if (mm === 0) return "NO RAIN";
-    if (mm < 2.5) return "LIGHT";
-    if (mm < 7.6) return "MODERATE";
-    if (mm < 50) return "HEAVY";
-    return "VIOLENT";
-  }, []);
-
-  const processSnapshot = useCallback((val, nodeKey) => {
-    if (!val) return [];
-    const nodeId = String(nodeKey).toLowerCase().replace(/\s+/g, "");
-    return Object.values(val)
-      .filter(v => v && v.Timestamp)
-      .map(v => ({
-        timestamp: v.Timestamp,
-        fullDate: v.Timestamp.split(" ")[0],
-        time: new Date(v.Timestamp.replace(" ", "T")).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        rain: parseFloat(v.RainRate || 0),
-        level: parseFloat(v.WaterLevel || 0),
-        nodeId,
-        nodeKey
-      }));
-  }, []);
-
-  const getLatestEntry = useCallback((val) => {
-    if (!val) return null;
-    const entries = Object.values(val).filter(v => v && v.Timestamp);
-    if (entries.length === 0) return null;
-    entries.sort((a, b) => new Date(a.Timestamp.replace(" ", "T")) - new Date(b.Timestamp.replace(" ", "T")));
-    return entries[entries.length - 1];
-  }, []);
-
-  const getCoord = useCallback((entry, keys) => {
-    if (!entry) return 0;
-    for (const key of keys) {
-      const raw = entry[key];
-      const num = raw === undefined || raw === null ? NaN : parseFloat(raw);
-      if (!Number.isNaN(num) && num !== 0) return num;
-    }
-    return 0;
-  }, []);
-
-  const toNodeDisplayName = useCallback((nodeKey) => {
-    const match = /^node\s*(\d+)$/i.exec(String(nodeKey).trim());
-    if (match) return `Sensor Node ${match[1]}`;
-    return `Sensor ${nodeKey}`;
-  }, []);
+  const [data, setData] = useState(DEFAULT_STATE);
 
   useEffect(() => {
-    const rootRef = ref(database);
-    const unsub = onValue(rootRef, (snap) => {
-      const root = snap.val() || {};
-      const keys = Object.keys(root);
-      const nodeKeys = keys.filter(k => /^node\s*\d+$/i.test(k));
-
-      // Use useMemo-like optimization by computing only what's needed
-      const logsByKey = {};
-      const latestByKey = {};
-      const nodes = [];
-
-      for (const nodeKey of nodeKeys) {
-        const val = root[nodeKey];
-        logsByKey[nodeKey] = processSnapshot(val, nodeKey);
-        latestByKey[nodeKey] = getLatestEntry(val);
-
-        const latest = latestByKey[nodeKey];
-        const isOffline = checkOffline(latest?.Timestamp);
-
-        nodes.push({
-          id: nodeKey,
-          key: nodeKey,
-          displayName: toNodeDisplayName(nodeKey),
-          level: isOffline ? "NO DATA" : parseFloat(latest?.WaterLevel || 0).toFixed(2),
-          label: isOffline ? "Offline" : (latest?.LevelLabel || "SAFE").toUpperCase(),
-          status: isOffline ? "offline" : "online",
-          timestamp: latest?.Timestamp || null,
-          lat: getCoord(latest, ["lat", "Lat", "LAT", "latitude", "Latitude"]),
-          lng: getCoord(latest, ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"]),
-          rainRate: parseFloat(latest?.RainRate || 0),
-          rainfall: parseFloat(latest?.Rainfall || 0),
-        });
-      }
-
-      const mergedLogs = Object.values(logsByKey)
-        .flat()
-        .sort((a, b) => new Date(a.timestamp.replace(" ", "T")) - new Date(b.timestamp.replace(" ", "T")));
-
-      const node1Key = nodeKeys.find(k => /^node\s*1$/i.test(k));
-      const node2Key = nodeKeys.find(k => /^node\s*2$/i.test(k));
-
-      const node1Latest = node1Key ? latestByKey[node1Key] : null;
-      const node2Latest = node2Key ? latestByKey[node2Key] : null;
-
-      const node1Offline = checkOffline(node1Latest?.Timestamp);
-      const node2Offline = checkOffline(node2Latest?.Timestamp);
-
-      const rainSourceKey = node2Key || node1Key || nodeKeys[0] || null;
-      const rainNode = rainSourceKey ? latestByKey[rainSourceKey] : null;
-      const rainNodeOffline = checkOffline(rainNode?.Timestamp);
-
-      const node1Logs = node1Key ? (logsByKey[node1Key] || []) : [];
-      const node2Logs = node2Key ? (logsByKey[node2Key] || []) : [];
-
-      setData(prev => ({
-        ...prev,
-        nodes,
-        rain: {
-          intensity: getRainIntensity(parseFloat(rainNode?.RainRate || 0)),
-          rate: `${parseFloat(rainNode?.RainRate || 0).toFixed(1)} mm/hr`,
-          total1h: `${parseFloat(rainNode?.Rainfall || 0).toFixed(1)}mm`,
-          source: rainSourceKey
-            ? (rainNodeOffline ? `${rainSourceKey} Offline` : `${rainSourceKey} Active`)
-            : "Detecting..."
-        },
-        node1: {
-          level: node1Offline ? "NO DATA" : parseFloat(node1Latest?.WaterLevel || 0).toFixed(2),
-          label: node1Offline ? "Offline" : (node1Latest?.LevelLabel || "SAFE").toUpperCase(),
-          status: node1Offline ? "offline" : "online",
-          timestamp: node1Latest?.Timestamp || null,
-          lat: getCoord(node1Latest, ["lat", "Lat", "LAT", "latitude", "Latitude"]),
-          lng: getCoord(node1Latest, ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"]),
-        },
-        node2: {
-          level: node2Offline ? "NO DATA" : parseFloat(node2Latest?.WaterLevel || 0).toFixed(2),
-          label: node2Offline ? "Offline" : (node2Latest?.LevelLabel || "SAFE").toUpperCase(),
-          status: node2Offline ? "offline" : "online",
-          timestamp: node2Latest?.Timestamp || null,
-          lat: getCoord(node2Latest, ["lat", "Lat", "LAT", "latitude", "Latitude"]),
-          lng: getCoord(node2Latest, ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"]),
-        },
-        allLogs: mergedLogs,
-        history: node2Logs.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
-        node1History: node1Logs.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
-        node2History: node2Logs.slice(-12).map(e => ({ time: e.time, rain: e.rain })),
-        lastUpdate: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-        loading: false
-      }));
+    const liveRoot = {};
+    const unsubs = ALLOWED_NODE_PATHS.map((path) => {
+      const nodeRef = ref(database, path);
+      return onValue(nodeRef, (snap) => {
+        liveRoot[path] = snap.val() || {};
+        setData(buildFloodState({ ...liveRoot }));
+      });
     });
 
-    return () => { unsub(); };
-  }, [checkOffline, getRainIntensity, processSnapshot, getLatestEntry, getCoord, toNodeDisplayName]);
+    return () => {
+      unsubs.forEach((unsubscribe) => unsubscribe());
+    };
+  }, []);
 
   return data;
 }
