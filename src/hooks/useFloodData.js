@@ -22,6 +22,11 @@ const DEFAULT_STATE = {
   loading: true,
 };
 
+let sharedState = DEFAULT_STATE;
+let sharedLiveRoot = {};
+let sharedUnsubs = [];
+const sharedListeners = new Set();
+
 const LAT_KEYS = ["lat", "Lat", "LAT", "latitude", "Latitude"];
 const LNG_KEYS = ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"];
 const OFFLINE_AFTER_MINUTES = 20;
@@ -353,31 +358,43 @@ function buildFloodState(root) {
   };
 }
 
+function emitSharedState(nextState) {
+  sharedState = nextState;
+  sharedListeners.forEach((listener) => listener(nextState));
+}
+
+function ensureSharedSubscriptions() {
+  if (sharedUnsubs.length > 0) return;
+
+  sharedUnsubs = ALLOWED_NODE_PATHS.map((path) => {
+    const nodeRef = ref(database, path);
+    return onValue(
+      nodeRef,
+      (snap) => {
+        sharedLiveRoot[path] = snap.val() || {};
+        emitSharedState(buildFloodState({ ...sharedLiveRoot }));
+      },
+      (error) => {
+        console.error(`RTDB read failed for ${path}:`, error?.code || error?.message || error);
+        emitSharedState({
+          ...sharedState,
+          loading: false,
+        });
+      }
+    );
+  });
+}
+
 export function useFloodData() {
-  const [data, setData] = useState(DEFAULT_STATE);
+  const [data, setData] = useState(sharedState);
 
   useEffect(() => {
-    const liveRoot = {};
-    const unsubs = ALLOWED_NODE_PATHS.map((path) => {
-      const nodeRef = ref(database, path);
-      return onValue(
-        nodeRef,
-        (snap) => {
-          liveRoot[path] = snap.val() || {};
-          setData(buildFloodState({ ...liveRoot }));
-        },
-        (error) => {
-          console.error(`RTDB read failed for ${path}:`, error?.code || error?.message || error);
-          setData((prev) => ({
-            ...prev,
-            loading: false,
-          }));
-        }
-      );
-    });
+    sharedListeners.add(setData);
+    setData(sharedState);
+    ensureSharedSubscriptions();
 
     return () => {
-      unsubs.forEach((unsubscribe) => unsubscribe());
+      sharedListeners.delete(setData);
     };
   }, []);
 

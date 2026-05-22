@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, LayoutDashboard, Activity, Map as MapIcon, Database, Brain, Bell, Menu } from "lucide-react";
 
+const SIDEBAR_COLLAPSED_KEY = "lawom.sidebar.collapsed";
+
 function NavItem({ icon, label, isActive, onClick, badge, collapsed }) {
   return (
     <button
@@ -29,7 +31,14 @@ function NavItem({ icon, label, isActive, onClick, badge, collapsed }) {
 }
 
 export function Sidebar({ activeView, node1, node2, lastUpdate }) {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+      return stored === null ? true : stored === "true";
+    } catch {
+      return true;
+    }
+  });
   const navigate = useNavigate();
 
   const navItems = [
@@ -41,11 +50,23 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
     { icon: <Bell size={18} />, label: "Alerts", path: "/alerts", activeKey: "alerts", badge: node1?.status === 'offline' || node2?.status === 'offline' ? "!" : null },
   ];
 
+  const toggleCollapsed = () => {
+    setCollapsed((value) => {
+      const nextValue = !value;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(nextValue));
+      } catch {
+        // ignore
+      }
+      return nextValue;
+    });
+  };
+
   return (
     <div className={`fixed inset-x-0 bottom-0 z-40 flex h-20 flex-col transition-all duration-300 md:relative md:inset-auto md:h-auto ${collapsed ? "md:w-20" : "md:w-64"}`}>
       <button
         type="button"
-        onClick={() => setCollapsed((value) => !value)}
+        onClick={toggleCollapsed}
         className="absolute top-4 right-[-1.25rem] z-20 hidden h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white md:inline-flex"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >

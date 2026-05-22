@@ -76,16 +76,16 @@ export default function Data() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ease-in-out">
-      <div className="mb-8 flex justify-between items-end">
+    <div className="app-page-stack animate-in fade-in slide-in-from-bottom-2 duration-500 ease-in-out">
+      <div className="app-page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">System Data Logs</h1>
-          <p className="text-muted-foreground mt-2">Historical sensor readings for Del Carmen Stations</p>
+          <p className="app-page-copy mt-2">Historical sensor readings for Del Carmen Stations</p>
         </div>
         
         <button 
           onClick={downloadCSV}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm"
+          className="app-action-button rounded-2xl px-4 py-2 text-sm tracking-[0.12em]"
         >
           <Download size={18} />
           Export CSV
@@ -119,11 +119,11 @@ export default function Data() {
       {isTabSwitching ? (
         <AppLoader label="Loading Logs..." />
       ) : (
-        <div 
+        <div
           key={activeTab}
-          className="bg-card text-card-foreground rounded-xl shadow-md border border-slate-300 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
+          className="app-card overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300"
         >
-          <div className="p-4 border-b border-border flex justify-between items-center bg-muted">
+          <div className="-mx-5 -mt-5 mb-0 flex justify-between items-center border-b border-slate-300 bg-muted px-5 py-4">
             <h2 className="font-bold text-foreground">
               Recent Sensor Activity ({activeTab === 'node1' ? 'Node 1' : 'Node 2'})
             </h2>

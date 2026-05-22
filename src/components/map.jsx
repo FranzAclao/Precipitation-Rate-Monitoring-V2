@@ -113,8 +113,8 @@ export default function Map({ nodes = [], node1, node2, heightClass = "h-[500px]
   }, [nodes, node1, node2]);
 
   return (
-    <div className="rounded-xl overflow-hidden shadow-md border border-slate-300 bg-card text-card-foreground">
-      <div className="p-4 border-b border-border flex justify-between items-center">
+    <div className="app-card overflow-hidden p-0">
+      <div className="flex justify-between items-center border-b border-slate-300 px-4 py-4">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
           Geospatial Status: Del Carmen
         </h3>
