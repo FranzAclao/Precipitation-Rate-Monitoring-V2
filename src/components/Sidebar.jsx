@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, LayoutDashboard, Map as MapIcon, Database, Brain, Bell, Menu, Settings } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Map as MapIcon, Database, Brain, Bell, Menu } from "lucide-react";
 
 function NavItem({ icon, label, isActive, onClick, badge, collapsed }) {
   return (
     <button
       onClick={onClick}
       title={label}
-      className={`group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[10px] font-bold transition-all duration-200 md:w-full md:flex-row md:justify-between md:gap-3 md:px-4 md:py-3 md:text-sm ${
+        className={`group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[10px] font-bold transition-all duration-200 md:w-full md:flex-row md:justify-between md:gap-3 md:px-4 md:py-3 md:text-sm ${
         isActive
-          ? "border-brand-teal/30 text-yellow-400 shadow-sm border bg-white/10"
-          : "border border-transparent text-slate-300 hover:bg-white/5 hover:text-yellow-400"
+          ? "border-white/20 text-white shadow-sm border bg-white/10"
+          : "border border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
       }`}
     >
       <div className={`flex min-w-0 flex-col items-center gap-1 md:flex-row md:gap-3 ${collapsed ? "md:justify-center md:w-full" : ""}`}>
-        <span className={`transition-colors duration-200 ${isActive ? "text-yellow-400" : "text-slate-400 group-hover:text-yellow-400"}`}>
+        <span className={`transition-colors duration-200 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}>
           {icon}
         </span>
         <span className={`max-w-full truncate ${collapsed ? "md:hidden" : ""}`}>{label}</span>
@@ -38,7 +38,6 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
     { icon: <Database size={18} />, label: "Data Logs", path: "/data", activeKey: "data" },
     { icon: <Brain size={18} />, label: "ML Analysis", path: "/analysis", activeKey: "analysis" },
     { icon: <Bell size={18} />, label: "Alerts", path: "/alerts", activeKey: "alerts", badge: node1?.status === 'offline' || node2?.status === 'offline' ? "!" : null },
-    { icon: <Settings size={18} />, label: "Settings", path: "/settings", activeKey: "settings" },
   ];
 
   return (
@@ -52,7 +51,7 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
         <Menu size={18} />
       </button>
 
-      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#004f7a] via-[#00456c] to-[#003250] shadow-xl dark:border-white/5 md:rounded-tr-3xl md:rounded-br-3xl md:rounded-tl-none">
+      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] shadow-xl dark:border-white/5 md:rounded-tr-3xl md:rounded-br-3xl md:rounded-tl-none">
         <div className={`hidden items-center ${collapsed ? "justify-center" : "justify-between"} gap-2 ${collapsed ? "p-4" : "p-6"} border-b border-white/10 md:flex`}>
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-brand-teal w-6 h-6 shrink-0" />
