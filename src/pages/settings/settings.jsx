@@ -39,27 +39,27 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="space-y-4 p-6 rounded-2xl bg-card text-card-foreground shadow-sm border border-border">
+      <div className="space-y-4 p-6 rounded-2xl bg-card text-card-foreground shadow-lg border border-slate-400">
         <p className="text-sm text-muted-foreground">No user data available.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <header className="mb-6">
+    <div className="app-page-stack max-w-4xl">
+      <header className="app-page-header">
         <div className="flex items-center gap-3 mb-3">
           <Settings className="text-blue-600" size={28} />
           <div>
             <h2 className="text-2xl font-black text-foreground tracking-tight">Settings</h2>
-            <p className="text-sm text-muted-foreground font-medium">Manage your profile, preferences, and account access.</p>
+            <p className="app-page-copy">Manage your profile, preferences, and account access.</p>
           </div>
         </div>
       </header>
 
       <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
         <div className="space-y-6">
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Profile</p>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Appearance</p>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
         </div>
 
         <aside className="space-y-6">
-          <div className="bg-card text-card-foreground rounded-3xl border border-border p-6 shadow-sm">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Account</p>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
 
 function InfoCard({ title, value }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <div className="app-subcard rounded-3xl p-5 shadow-md">
       <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">{title}</p>
       <p className="text-sm font-semibold text-foreground leading-6 break-words">{value}</p>
     </div>

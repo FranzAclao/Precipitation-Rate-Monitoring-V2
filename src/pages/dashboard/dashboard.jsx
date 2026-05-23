@@ -7,11 +7,9 @@ import AnalysisPage from "@/pages/analysis/analysis";
 import AlertsPage from "@/pages/alerts/alerts.jsx";
 import { 
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
-  RefreshCcw
+  RefreshCcw, CheckCircle2, AlertCircle, XCircle
 } from "lucide-react";
-import { Header } from "@/components/Header.jsx";
-import PageSkeleton from "@/components/PageSkeleton.jsx";
-import { Sidebar } from "@/components/Sidebar.jsx";
+import { AppLoader } from "@/components/AppLoader.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 import CanalSvg from "@/components/CanalSvg.jsx";
@@ -24,6 +22,7 @@ const LEVEL_META = {
     water: "from-emerald-200 via-emerald-300 to-emerald-400",
     surface: "#bbf7d0",
     marker: "bg-emerald-500",
+    darkPill: "border-emerald-500/30 bg-emerald-500/12 text-emerald-200",
   },
   WATCH: {
     pill: "border-yellow-200 bg-yellow-50 text-amber-700",
@@ -31,6 +30,7 @@ const LEVEL_META = {
     water: "from-yellow-200 via-yellow-300 to-amber-300",
     surface: "#fde68a",
     marker: "bg-amber-400",
+    darkPill: "border-amber-400/30 bg-amber-400/16 text-amber-100",
   },
   CAUTION: {
     pill: "border-orange-200 bg-orange-50 text-orange-700",
@@ -38,6 +38,7 @@ const LEVEL_META = {
     water: "from-orange-200 via-orange-300 to-orange-400",
     surface: "#fdba74",
     marker: "bg-orange-500",
+    darkPill: "border-orange-500/30 bg-orange-500/16 text-orange-100",
   },
   DANGER: {
     pill: "border-red-200 bg-red-50 text-red-700",
@@ -45,6 +46,7 @@ const LEVEL_META = {
     water: "from-red-200 via-red-300 to-red-400",
     surface: "#fca5a5",
     marker: "bg-red-500",
+    darkPill: "border-red-500/32 bg-red-500/18 text-red-100",
   },
   MONITORING: {
     pill: "border-slate-200 bg-slate-50 text-slate-700",
@@ -52,6 +54,7 @@ const LEVEL_META = {
     water: "from-sky-200 via-sky-300 to-sky-400",
     surface: "#bae6fd",
     marker: "bg-slate-400",
+    darkPill: "border-slate-500/28 bg-slate-500/14 text-slate-200",
   },
 };
 
@@ -64,15 +67,24 @@ function formatLocalDate(value) {
   return `${year}-${month}-${day}`;
 }
 
+function getTelemetryLabel(reason) {
+  if (reason === "heartbeat_boot") return "System started";
+  if (reason === "heartbeat_dry") return "Dry conditions";
+  if (reason === "rain_event") return "Rain started";
+  if (reason === "periodic_wet") return "Rain ongoing";
+  if (reason === "periodic_dry_window") return "Post-rain monitoring";
+  return "Telemetry live";
+}
+
 export default function Dashboard() {
-  const { rain, node1, node2, allLogs, lastUpdate, loading } = useFloodData();
+  const { rain, system, node1, node2, allLogs, lastUpdate, loading } = useFloodData();
   const location = useLocation();
 
   const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [isViewSwitching, setIsViewSwitching] = useState(false);
   const routeToView = useMemo(() => ({
     "/": "overview",
+    "/dashboard": "dashboard",
     "/geospatial-status": "locations",
     "/locations": "locations",
     "/data": "data",
@@ -80,69 +92,116 @@ export default function Dashboard() {
     "/alerts": "alerts",
     "/settings": "settings",
   }), []);
-  const activeView = routeToView[location.pathname] || "overview";
+  const activeView = routeToView[location.pathname] || "dashboard";
   const viewTitles = useMemo(() => ({
-    overview: "Dashboard",
+    dashboard: "Monitoring Dashboard",
     locations: "Sensor Nodes",
     data: "Data Logs",
     analysis: "ML Analysis",
     alerts: "Alerts",
     settings: "Settings",
   }), []);
-  const headerTitle = viewTitles[activeView] || "Overview";
 
   const chartData = useMemo(() => {
     if (!allLogs || allLogs.length === 0) return [];
     return allLogs.filter(log => log.fullDate === selectedDate);
   }, [selectedDate, allLogs]);
+  const sectionRisk = useMemo(() => getSectionRisk(node1, node2), [node1, node2]);
+
+  const telemetryMetrics = useMemo(() => {
+    const detailMap = new Map((system?.details || []).map((item) => [String(item.nodeKey || "").toLowerCase(), item]));
+
+    const buildMetric = (nodeKey, title) => {
+      if (selectedDate !== todayStr) {
+        return {
+          title,
+          value: "ARCHIVE",
+          subtitle: "Historical view",
+        };
+      }
+
+      const detail = detailMap.get(nodeKey);
+      if (!detail) {
+        return {
+          title,
+          value: "No telemetry",
+          subtitle: "Waiting for data",
+        };
+      }
+
+      return {
+        title,
+        value: detail.offline ? "Offline" : getTelemetryLabel(detail.sendReason),
+        subtitle: detail.timestamp || "No timestamp",
+      };
+    };
+
+    return [
+      buildMetric("node1", "Node 1 System Status"),
+      buildMetric("node2", "Node 2 System Status"),
+    ];
+  }, [selectedDate, todayStr, system]);
 
   useEffect(() => {
-    setIsViewSwitching(true);
-    const timeoutId = window.setTimeout(() => setIsViewSwitching(false), 180);
+    if (location.hash !== "#sensor-telemetry") return;
+    const timeoutId = window.setTimeout(() => {
+      document.getElementById("sensor-telemetry")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 220);
     return () => window.clearTimeout(timeoutId);
-  }, [activeView]);
+  }, [location.hash, activeView]);
 
   if (loading) return (
-    <div className="flex h-screen flex-col items-center justify-center bg-background text-muted-foreground font-medium">
-      <div className="relative flex h-12 w-12 mb-4">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-12 w-12 bg-blue-500 items-center justify-center">
-          <RefreshCcw className="text-white animate-spin-slow" size={24} />
-        </span>
-      </div>
-      <p className="tracking-widest text-xs font-bold uppercase">Syncing with Sensors...</p>
-    </div>
+    <AppLoader label="Syncing with Sensors..." />
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-      <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-        <Header title={headerTitle} />
-
-        <div className="pt-6 md:pt-8">
-        {isViewSwitching ? <PageSkeleton /> : (
+    <div className="app-page-container">
           <>
-        {activeView === 'overview' && (
-          <div className="space-y-6 max-w-[1600px] mx-auto">
-            <header className="mb-8">
-              <p className="text-sm text-muted-foreground font-medium mt-1">Real-time metrics and historical rainfall data.</p>
+        {activeView === 'dashboard' && (
+          <div className="app-page-stack">
+            <header className="app-page-header">
+              <p className="app-page-copy">Real-time metrics and historical rainfall data.</p>
             </header>
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate} · ${rain.source}`} icon={<CloudRain className="w-5 h-5" />} />
-              <MetricCard title="Rainfall (1hr)" value={rain.total1h} subtitle="Accumulated" icon={<Droplets className="w-5 h-5" />} />
-              <MetricCard title="System Mode" value={selectedDate === todayStr ? "LIVE" : "ARCHIVE"} subtitle="Status" icon={<Clock className="w-5 h-5" />} />
+            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-5 gap-4">
+              <MetricCard
+                title="Rain Intensity"
+                value={rain.intensity}
+                subtitle={rain.status === "offline" ? "Offline sensor state" : `${rain.rate}`}
+                icon={<CloudRain className="w-5 h-5" />}
+                darkTheme
+              />
+              <MetricCard
+                title="Accumulated Rainfall"
+                value={rain.total1h}
+                subtitle={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Offline sensor state" : "No active rainfall"}
+                icon={<Droplets className="w-5 h-5" />}
+                darkTheme
+              />
+              {telemetryMetrics.map((metric) => (
+                <MetricCard
+                  key={metric.title}
+                  title={metric.title}
+                  value={metric.value}
+                  subtitle={metric.subtitle}
+                  icon={<Clock className="w-5 h-5" />}
+                  darkTheme
+                />
+              ))}
+              <MetricCard
+                title="Overall Status"
+                value={getDisplayStatusName(sectionRisk)}
+                subtitle="Current canal status"
+                icon={getStatusIcon(sectionRisk)}
+                solidStatusLevel={sectionRisk}
+              />
             </div>
 
             <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
 
-            {/* Chart Area */}
-            <div className="mt-8 bg-card text-card-foreground p-4 sm:p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+            <div id="sensor-telemetry" className="app-card mt-8 p-4 sm:p-6 relative overflow-hidden">
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
-                <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Sensor Telemetry</h3>
+                <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Rainfall Trends</h3>
                 
                 <div className="flex flex-wrap items-center gap-2">
                    {selectedDate !== todayStr && (
@@ -184,14 +243,9 @@ export default function Dashboard() {
 
         {activeView === 'settings' && <SettingsPage />}
           </>
-        )}
-        </div>
-
-      </main>
     </div>
   );
 }
-
 
 function NavItem({ icon, label, isActive, onClick, badge }) {
   return (
@@ -221,36 +275,29 @@ function NavItem({ icon, label, isActive, onClick, badge }) {
 
 function WaterLevelSection({ node1, node2 }) {
   const nodes = [
-    { key: "node1", title: "Node 1", node: node1 },
-    { key: "node2", title: "Node 2", node: node2 },
+    { key: "node1", title: "Zone 1", node: node1 },
+    { key: "node2", title: "Zone 5", node: node2 },
   ];
   const sectionRisk = getSectionRisk(node1, node2);
-  const showAlertBanner = !["SAFE", "MONITORING"].includes(sectionRisk);
-  const riskMeta = getLevelMeta(sectionRisk);
-  const sectionUpdatedAt = getSectionLastUpdated(node1, node2);
 
   return (
     <section className="water-level-section">
       <div className="space-y-5">
-        <div className="water-level-header">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(2,23,42,0.35)] md:text-2xl">Water Level Monitor</h2>
-            <p className="water-level-subtitle">Monitor the canal water level status.</p>
-            <div className="water-level-status-row">
-              <div className="water-level-chip">Last updated: {sectionUpdatedAt}</div>
-            </div>
-          </div> 
-          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${riskMeta.solid}`}>
-                <AlertTriangle className="h-4 w-4" />
-                Overall Status: {getDisplayStatusName(sectionRisk)}
+        <div className="water-level-top-shell">
+          <div className="water-level-header">
+            <div>
+              <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
+              <p className="water-level-subtitle">i-monitor and kanal chuy kay basin taas ang tubig.</p>
+              <div className="water-level-status-row">
               </div>
+            </div>
+          </div>
+          <div className="water-level-summary-grid">
+            {nodes.map((item) => (
+              <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
+            ))}
+          </div>
         </div>
-        <div className="water-level-summary-grid">
-          {nodes.map((item) => (
-            <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
-          ))}
-        </div>
-
         <div className="water-level-bottom-grid">
           <FloodRiskStack activeLevel={sectionRisk} maxLevel={getGuideMaxLevel(node1, node2)} />
 
@@ -265,32 +312,55 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status }) {
+function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, solidStatusLevel = null }) {
   const isOffline = status === 'offline';
+  const solidStatusCard = solidStatusLevel ? getOverallStatusMetricCardClass(solidStatusLevel) : null;
   
   return (
-    <div className={`relative bg-card text-card-foreground p-4 sm:p-5 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
-      isOffline 
-        ? 'opacity-80 bg-muted/60' 
-        : 'hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
+    <div className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
+      solidStatusCard
+        ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_24px_rgba(2,8,23,0.22)]`
+        : isOffline 
+        ? darkTheme
+          ? 'opacity-90 text-slate-700 dark:text-slate-300'
+          : 'opacity-80 bg-muted/60 border-border text-card-foreground'
+        : darkTheme
+          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.08)] hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
+          : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
+          solidStatusCard
+            ? solidStatusCard.eyebrow
+            : darkTheme ? 'text-slate-400 group-hover:text-slate-300 dark:text-slate-400 dark:group-hover:text-slate-200' : 'text-muted-foreground'
+        }`}>
           {title}
         </h3>
         
         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
-          isOffline 
-            ? 'bg-muted text-muted-foreground' 
-            : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
+          solidStatusCard
+            ? solidStatusCard.icon
+            : isOffline 
+            ? darkTheme
+              ? 'bg-slate-100 text-slate-500 dark:bg-white/8 dark:text-slate-400'
+              : 'bg-muted text-muted-foreground'
+            : darkTheme
+              ? 'bg-slate-100 text-slate-700 dark:bg-white/8 dark:text-slate-200'
+              : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
         </div>
       </div>
       
       <div>
-        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${isOffline ? 'text-muted-foreground' : 'text-foreground'}`}>
+        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
+          solidStatusCard
+            ? solidStatusCard.value
+            : isOffline
+            ? darkTheme ? 'text-slate-600 dark:text-slate-300' : 'text-muted-foreground'
+            : 'text-foreground'
+        }`}>
           {value}
         </div>
         <div className="flex items-center gap-1.5 mt-1.5">
@@ -300,7 +370,11 @@ function MetricCard({ title, value, subtitle, icon, status }) {
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${
+              solidStatusCard
+                ? solidStatusCard.subtitle
+                : darkTheme ? 'text-slate-500 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300' : 'text-muted-foreground'
+            }`}>
               {subtitle}
             </p>
           )}
@@ -319,7 +393,7 @@ function NodeSummaryCard({ title, node }) {
   const hoverTone = getNodeHoverTone(status, isOffline);
 
   return (
-    <div className={`relative bg-card text-card-foreground p-4 rounded-2xl border border-border transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
+    <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
       isOffline
         ? ""
         : hoverTone
@@ -329,17 +403,17 @@ function NodeSummaryCard({ title, node }) {
           <p className="water-level-node-title">{title}</p>
           <p className="water-level-value-label">Current water level</p>
           <p className="mt-1.5 text-2xl font-black tracking-tight text-foreground">{formatNodeLevel(node)}</p>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
+            <Waves className="w-5 h-5" />
+          </div>
           {hasExceededLevel && (
             <div className="water-level-warning">
               <AlertTriangle className="h-3.5 w-3.5" />
               Water level exceeded 55 cm
             </div>
           )}
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
-            <Waves className="w-5 h-5" />
-          </div>
         </div>
       </div>
       <div className="water-level-mini-grid">
@@ -363,44 +437,44 @@ function NodeMiniStat({ label, value, tone = "text-foreground" }) {
 function FloodRiskStack({ activeLevel, maxLevel }) {
   const levels = [
     {
-      key: "DANGER",
-      label: "Flood Risk",
-      description: "Possible overflow",
-      tint: "bg-[#eb3434] border-[#c62828]",
-      text: "text-white",
-      subtext: "text-white/90",
-      current: "text-red-700",
-      icon: AlertTriangle,
+      key: "SAFE",
+      label: "Safe",
+      description: "Normal water level",
+      tint: "bg-[#9edcff] border-[#68b9e8] dark:bg-[#173c57] dark:border-[#2f6288]",
+      text: "text-slate-950",
+      subtext: "text-slate-800 dark:text-sky-100/88",
+      current: "text-sky-700",
+      icon: Check,
+    },
+    {
+      key: "WATCH",
+      label: "Watch",
+      description: "Monitor closely",
+      tint: "bg-[#ffd54a] border-[#e0b93c] dark:bg-[#584b16] dark:border-[#8a7425]",
+      text: "text-slate-950",
+      subtext: "text-slate-800 dark:text-amber-100/88",
+      current: "text-amber-700",
+      icon: Eye,
     },
     {
       key: "CAUTION",
       label: "Caution",
       description: "Elevated level",
-      tint: "bg-[#f59b00] border-[#d98200]",
+      tint: "bg-[#f59b00] border-[#d98200] dark:bg-[#5d3210] dark:border-[#8b4e19]",
       text: "text-white",
       subtext: "text-white/90",
       current: "text-orange-700",
       icon: CircleAlert,
     },
     {
-      key: "WATCH",
-      label: "Watch",
-      description: "Monitor closely",
-      tint: "bg-[#ffd54a] border-[#e0b93c]",
-      text: "text-slate-950",
-      subtext: "text-slate-800",
-      current: "text-amber-700",
-      icon: Eye,
-    },
-    {
-      key: "SAFE",
-      label: "Safe",
-      description: "Normal water level",
-      tint: "bg-[#9edcff] border-[#68b9e8]",
-      text: "text-slate-950",
-      subtext: "text-slate-800",
-      current: "text-sky-700",
-      icon: Check,
+      key: "DANGER",
+      label: "Flood Risk",
+      description: "Possible overflow",
+      tint: "bg-[#eb3434] border-[#c62828] dark:bg-[#5c1f28] dark:border-[#8f3445]",
+      text: "text-white",
+      subtext: "text-white/90",
+      current: "text-red-700",
+      icon: AlertTriangle,
     },
   ];
 
@@ -452,12 +526,6 @@ function CanalPanel({ title, node }) {
           <p className="mt-2 text-lg font-black tracking-tight text-foreground">Canal View</p>
         </div>
       </div>
-      {hasExceededLevel && (
-        <div className="water-level-warning">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          Water level exceeded 55 cm
-        </div>
-      )}
 
       <div className="water-level-visual">
         <CanalSvg
@@ -633,14 +701,10 @@ function getGuideMaxLevel(node1, node2) {
 }
 
 function getGuideThresholdText(label, maxLevel) {
-  if (!maxLevel) return "Threshold pending";
-  const watchStart = Math.round(maxLevel * 0.4);
-  const cautionStart = Math.round(maxLevel * 0.65);
-  const floodStart = Math.round(maxLevel * 0.85);
-  if (label === "SAFE") return `< ${watchStart} cm`;
-  if (label === "WATCH") return `${watchStart}-${cautionStart - 1} cm`;
-  if (label === "CAUTION") return `${cautionStart}-${floodStart - 1} cm`;
-  if (label === "DANGER") return `>= ${floodStart} cm`;
+  if (label === "SAFE") return `< 20 cm`;
+  if (label === "WATCH") return `20-35 cm`;
+  if (label === "CAUTION") return `36-46 cm`;
+  if (label === "DANGER") return `>= 55 cm`;
   return "Threshold pending";
 }
 
@@ -650,4 +714,53 @@ function getStatusDescription(status) {
   if (status === "watch") return "Water level is within the watch range.";
   if (status === "safe") return "Water level is within the normal operating range.";
   return "Awaiting telemetry from this monitoring node.";
+}
+
+function getOverallStatusMetricCardClass(level) {
+  const normalized = normalizeLevelLabel(level);
+  if (normalized === "DANGER") return {
+    card: "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)] dark:border-red-500/40 dark:bg-red-500/18 dark:text-red-50",
+    eyebrow: "text-red-100",
+    icon: "bg-white/15 text-white dark:bg-red-500/18 dark:text-red-100",
+    value: "text-white",
+    subtitle: "text-red-100",
+  };
+  if (normalized === "CAUTION") return {
+    card: "border-orange-500 bg-orange-500 text-white shadow-[0_10px_24px_rgba(234,88,12,0.24)] dark:border-orange-500/40 dark:bg-orange-500/16 dark:text-orange-50",
+    eyebrow: "text-orange-100",
+    icon: "bg-white/15 text-white dark:bg-orange-500/18 dark:text-orange-100",
+    value: "text-white",
+    subtitle: "text-orange-100",
+  };
+  if (normalized === "WATCH") return {
+    card: "border-yellow-400 bg-yellow-400 text-slate-950 shadow-[0_10px_24px_rgba(250,204,21,0.22)] dark:border-amber-400/34 dark:bg-amber-400/18 dark:text-amber-50",
+    eyebrow: "text-slate-700 dark:text-amber-100",
+    icon: "bg-white/35 text-slate-950 dark:bg-amber-400/18 dark:text-amber-100",
+    value: "text-slate-950 dark:text-amber-50",
+    subtitle: "text-slate-700 dark:text-amber-100",
+  };
+  if (normalized === "SAFE") return {
+    card: "border-sky-500 bg-sky-500 text-white shadow-[0_10px_24px_rgba(14,165,233,0.22)] dark:border-sky-500/34 dark:bg-sky-500/16 dark:text-sky-50",
+    eyebrow: "text-sky-100",
+    icon: "bg-white/15 text-white dark:bg-sky-500/18 dark:text-sky-100",
+    value: "text-white",
+    subtitle: "text-sky-100",
+  };
+  return {
+    card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)] dark:border-slate-500/28 dark:bg-slate-500/14 dark:text-slate-50",
+    eyebrow: "text-slate-100",
+    icon: "bg-white/15 text-white dark:bg-white/8 dark:text-slate-100",
+    value: "text-white",
+    subtitle: "text-slate-100",
+  };
+}
+
+function getStatusIcon(tone) {
+  const normalized = String(tone || "").toUpperCase();
+  if (normalized === "OFFLINE") return <XCircle className="w-5 h-5" />;
+  if (normalized === "DANGER") return <AlertTriangle className="w-5 h-5" />;
+  if (normalized === "CAUTION") return <AlertCircle className="w-5 h-5" />;
+  if (normalized === "WATCH") return <AlertCircle className="w-5 h-5" />;
+  if (normalized === "SAFE") return <CheckCircle2 className="w-5 h-5" />;
+  return <Activity className="w-5 h-5" />;
 }

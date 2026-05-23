@@ -9,7 +9,8 @@ const DEFAULT_NODE_DEPTHS_CM = {
 const ALLOWED_NODE_PATHS = ["Node1", "Node2"];
 
 const DEFAULT_STATE = {
-  rain: { intensity: "--", rate: 0, total1h: 0, status: "loading", source: "Detecting..." },
+  rain: { intensity: "--", rate: "0 mm/hr", total1h: "0 mm", status: "loading", source: "Detecting..." },
+  system: { mode: "LIVE", label: "Detecting...", subtitle: "Waiting for telemetry", sendReason: null, timestamp: null, details: [] },
   node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
   node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
   nodes: [],
@@ -21,8 +22,15 @@ const DEFAULT_STATE = {
   loading: true,
 };
 
+let sharedState = DEFAULT_STATE;
+let sharedLiveRoot = {};
+let sharedUnsubs = [];
+const sharedListeners = new Set();
+
 const LAT_KEYS = ["lat", "Lat", "LAT", "latitude", "Latitude"];
 const LNG_KEYS = ["lng", "Lng", "LNG", "longitude", "Longitude", "lon", "Lon"];
+const OFFLINE_AFTER_MINUTES = 20;
+const MAX_FUTURE_SKEW_MINUTES = 10;
 
 function parseNumber(value, fallback = 0) {
   const parsed = parseFloat(value);
@@ -37,16 +45,71 @@ function getTimestamp(entry) {
   return entry?.timestamp || entry?.Timestamp || null;
 }
 
+function getSendReason(entry) {
+  return entry?.send_reason || entry?.sendReason || null;
+}
+
+function parseDateInput(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  return String(value).trim();
+}
+
+function toCandidateDates(value) {
+  const input = parseDateInput(value);
+  if (!input) return [];
+  if (input instanceof Date) return [input];
+
+  const candidates = [];
+  const pushDate = (dateValue) => {
+    if (!(dateValue instanceof Date) || Number.isNaN(dateValue.getTime())) return;
+    if (!candidates.some((candidate) => candidate.getTime() === dateValue.getTime())) {
+      candidates.push(dateValue);
+    }
+  };
+
+  pushDate(new Date(input));
+
+  const normalized = input.replace(" ", "T");
+  pushDate(new Date(normalized));
+
+  const localLikeMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (localLikeMatch) {
+    const [, year, month, day, hour, minute, second = "00"] = localLikeMatch;
+    pushDate(new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)));
+    pushDate(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second))));
+  }
+
+  return candidates;
+}
+
 function toDate(value) {
-  if (!value) return null;
-  const parsed = new Date(String(value).replace(" ", "T"));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return toCandidateDates(value)[0] || null;
+}
+
+function isTimestampFresh(timestamp) {
+  const sensorTimes = toCandidateDates(timestamp);
+  if (sensorTimes.length === 0) return false;
+
+  return sensorTimes.some((sensorTime) => {
+    const diffMinutes = (Date.now() - sensorTime.getTime()) / (1000 * 60);
+    if (diffMinutes < -MAX_FUTURE_SKEW_MINUTES) return false;
+    return diffMinutes <= OFFLINE_AFTER_MINUTES;
+  });
 }
 
 function checkOffline(timestamp) {
-  const sensorTime = toDate(timestamp);
-  if (!sensorTime) return true;
-  return (Date.now() - sensorTime.getTime()) / (1000 * 60) > 20;
+  return !isTimestampFresh(timestamp);
+}
+
+function formatStatusTimestamp(timestamp) {
+  return timestamp ? String(timestamp) : null;
 }
 
 function getRainIntensity(mm) {
@@ -67,6 +130,15 @@ function getRainfallValue(entry) {
 
 function getWaterLevelValue(entry) {
   return parseNumber(entry?.ultrasonic?.processed?.water_level_cm ?? entry?.WaterLevel ?? 0);
+}
+
+function getRainingValue(entry) {
+  return Boolean(entry?.rain_gauge?.raw?.is_raining);
+}
+
+function getUltrasonicValid(entry) {
+  const value = entry?.ultrasonic?.raw?.valid;
+  return typeof value === "boolean" ? value : null;
 }
 
 function getMaxWaterLevelValue(entry) {
@@ -111,6 +183,12 @@ function toNodeDisplayName(nodeKey) {
   return `Sensor ${nodeKey}`;
 }
 
+function toShortNodeName(nodeKey) {
+  const match = /^node\s*(\d+)$/i.exec(String(nodeKey || "").trim());
+  if (match) return `N${match[1]}`;
+  return String(nodeKey || "").toUpperCase();
+}
+
 function getNodeDepthFallback(nodeKey) {
   if (!nodeKey) return null;
   return DEFAULT_NODE_DEPTHS_CM[toNodeId(nodeKey)] ?? null;
@@ -132,8 +210,16 @@ function buildLogEntry(entry, nodeKey) {
   };
 }
 
+function isTelemetrySnapshot(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Boolean(getTimestamp(value));
+}
+
 function getNodeLogs(value, nodeKey) {
   if (!value) return [];
+  if (isTelemetrySnapshot(value)) {
+    const log = buildLogEntry(value, nodeKey);
+    return log ? [log] : [];
+  }
   return Object.values(value)
     .map((entry) => buildLogEntry(entry, nodeKey))
     .filter(Boolean);
@@ -141,6 +227,7 @@ function getNodeLogs(value, nodeKey) {
 
 function getLatestEntry(value) {
   if (!value) return null;
+  if (isTelemetrySnapshot(value)) return value;
   const entries = Object.values(value).filter((entry) => toDate(getTimestamp(entry)));
   if (entries.length === 0) return null;
   entries.sort((a, b) => toDate(getTimestamp(a)) - toDate(getTimestamp(b)));
@@ -149,7 +236,7 @@ function getLatestEntry(value) {
 
 function createNodeSummary(nodeKey, latestEntry) {
   const timestamp = getTimestamp(latestEntry);
-  const offline = checkOffline(timestamp);
+  const offline = !latestEntry;
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
   const fillRatio = maxLevel ? Math.min(level / maxLevel, 1) : 0;
@@ -173,7 +260,7 @@ function createNodeSummary(nodeKey, latestEntry) {
 
 function createPrimaryNodeState(nodeKey, latestEntry) {
   const timestamp = getTimestamp(latestEntry);
-  const offline = checkOffline(timestamp);
+  const offline = !latestEntry;
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
 
@@ -194,18 +281,120 @@ function buildHistory(logs) {
 }
 
 function createRainState(rainSourceKey, latestByKey) {
-  const rainNode = rainSourceKey ? latestByKey[rainSourceKey] : null;
-  const rainRate = getRainRateValue(rainNode);
-  const rainfall = getRainfallValue(rainNode);
-  const sourceStatus = rainSourceKey
-    ? (checkOffline(getTimestamp(rainNode)) ? `${rainSourceKey} Offline` : `${rainSourceKey} Active`)
-    : "Detecting...";
+  const preferredKeys = [
+    rainSourceKey,
+    ...Object.keys(latestByKey).filter((key) => key !== rainSourceKey),
+  ].filter(Boolean);
+
+  const candidates = preferredKeys
+    .map((nodeKey) => {
+      const entry = latestByKey[nodeKey];
+      if (!entry) return null;
+
+      const timestamp = getTimestamp(entry);
+      return {
+        nodeKey,
+        entry,
+        offline: false,
+        rainRate: getRainRateValue(entry),
+        rainfall: getRainfallValue(entry),
+        isRaining: getRainingValue(entry),
+      };
+    })
+    .filter(Boolean);
+
+  const onlineCandidates = candidates.filter((item) => !item.offline);
+  const activeCandidate = onlineCandidates.find((item) => item.isRaining || item.rainRate > 0);
+  const primaryOnlineCandidate = activeCandidate || onlineCandidates[0];
+
+  if (!primaryOnlineCandidate) {
+    return {
+      intensity: "Offline",
+      rate: "No Data",
+      total1h: "No Data",
+      status: "offline",
+      source: candidates.length > 0 ? "All nodes offline" : "Waiting for telemetry",
+    };
+  }
+
+  if (!activeCandidate) {
+    return {
+      intensity: "No Rain",
+      rate: "0 mm/hr",
+      total1h: "0 mm",
+      status: "inactive",
+      source: `${primaryOnlineCandidate.nodeKey} Online`,
+    };
+  }
 
   return {
-    intensity: getRainIntensity(rainRate),
-    rate: `${rainRate.toFixed(1)} mm/hr`,
-    total1h: `${rainfall.toFixed(1)}mm`,
-    source: sourceStatus,
+    intensity: getRainIntensity(activeCandidate.rainRate),
+    rate: `${activeCandidate.rainRate.toFixed(1)} mm/hr`,
+    total1h: `${activeCandidate.rainfall.toFixed(1)} mm`,
+    status: "active",
+    source: `${activeCandidate.nodeKey} Active`,
+  };
+}
+
+function getSendReasonLabel(reason) {
+  if (reason === "heartbeat_boot") return "System started";
+  if (reason === "heartbeat_dry") return "Dry conditions";
+  if (reason === "rain_event") return "Rain started";
+  if (reason === "periodic_wet") return "Rain ongoing";
+  if (reason === "periodic_dry_window") return "Post-rain monitoring";
+  return "Telemetry live";
+}
+
+function createSystemState(systemNodeKeys, latestByKey) {
+  const details = (systemNodeKeys || [])
+    .map((nodeKey) => {
+      const entry = latestByKey[nodeKey];
+      const timestamp = getTimestamp(entry);
+      const sendReason = getSendReason(entry);
+      return {
+        nodeKey,
+        entry,
+        timestamp,
+        sendReason,
+        offline: false,
+      };
+    })
+    .filter((item) => item.entry);
+
+  if (details.length === 0) {
+    return {
+      mode: "LIVE",
+      label: "Offline",
+      subtitle: "No recent telemetry",
+      sendReason: null,
+      timestamp: null,
+      details: [],
+    };
+  }
+
+  const sortedDetails = [...details].sort((a, b) => {
+    const aTime = toDate(a.timestamp)?.getTime() ?? 0;
+    const bTime = toDate(b.timestamp)?.getTime() ?? 0;
+    return bTime - aTime;
+  });
+
+  const primary = sortedDetails.find((item) => !item.offline) || sortedDetails[0];
+  const primaryTimestamp = formatStatusTimestamp(primary.timestamp);
+  const perNodeSummary = sortedDetails
+    .map((item) => {
+      const label = item.offline ? "Offline" : getSendReasonLabel(item.sendReason);
+      const timestamp = formatStatusTimestamp(item.timestamp);
+      return `${toShortNodeName(item.nodeKey)} ${label}${timestamp ? ` ${timestamp}` : ""}`;
+    })
+    .join(" | ");
+
+  return {
+    mode: "LIVE",
+    label: primary.offline ? "Offline" : getSendReasonLabel(primary.sendReason),
+    subtitle: perNodeSummary || (primaryTimestamp || "No recent telemetry"),
+    sendReason: primary.sendReason,
+    timestamp: primary.timestamp,
+    details: sortedDetails,
   };
 }
 
@@ -228,6 +417,7 @@ function buildFloodState(root) {
   const node1Key = nodeKeys.find((key) => /^node\s*1$/i.test(key));
   const node2Key = nodeKeys.find((key) => /^node\s*2$/i.test(key));
   const rainSourceKey = node2Key || node1Key || nodeKeys[0] || null;
+  const systemNodeKeys = [node1Key, node2Key].filter(Boolean);
 
   const node1Logs = node1Key ? (logsByKey[node1Key] || []) : [];
   const node2Logs = node2Key ? (logsByKey[node2Key] || []) : [];
@@ -236,6 +426,7 @@ function buildFloodState(root) {
     ...DEFAULT_STATE,
     nodes,
     rain: createRainState(rainSourceKey, latestByKey),
+    system: createSystemState(systemNodeKeys.length ? systemNodeKeys : nodeKeys, latestByKey),
     node1: createPrimaryNodeState(node1Key, node1Key ? latestByKey[node1Key] : null),
     node2: createPrimaryNodeState(node2Key, node2Key ? latestByKey[node2Key] : null),
     allLogs: mergedLogs,
@@ -247,31 +438,43 @@ function buildFloodState(root) {
   };
 }
 
+function emitSharedState(nextState) {
+  sharedState = nextState;
+  sharedListeners.forEach((listener) => listener(nextState));
+}
+
+function ensureSharedSubscriptions() {
+  if (sharedUnsubs.length > 0) return;
+
+  sharedUnsubs = ALLOWED_NODE_PATHS.map((path) => {
+    const nodeRef = ref(database, path);
+    return onValue(
+      nodeRef,
+      (snap) => {
+        sharedLiveRoot[path] = snap.val() || {};
+        emitSharedState(buildFloodState({ ...sharedLiveRoot }));
+      },
+      (error) => {
+        console.error(`RTDB read failed for ${path}:`, error?.code || error?.message || error);
+        emitSharedState({
+          ...sharedState,
+          loading: false,
+        });
+      }
+    );
+  });
+}
+
 export function useFloodData() {
-  const [data, setData] = useState(DEFAULT_STATE);
+  const [data, setData] = useState(sharedState);
 
   useEffect(() => {
-    const liveRoot = {};
-    const unsubs = ALLOWED_NODE_PATHS.map((path) => {
-      const nodeRef = ref(database, path);
-      return onValue(
-        nodeRef,
-        (snap) => {
-          liveRoot[path] = snap.val() || {};
-          setData(buildFloodState({ ...liveRoot }));
-        },
-        (error) => {
-          console.error(`RTDB read failed for ${path}:`, error?.code || error?.message || error);
-          setData((prev) => ({
-            ...prev,
-            loading: false,
-          }));
-        }
-      );
-    });
+    sharedListeners.add(setData);
+    setData(sharedState);
+    ensureSharedSubscriptions();
 
     return () => {
-      unsubs.forEach((unsubscribe) => unsubscribe());
+      sharedListeners.delete(setData);
     };
   }, []);
 
