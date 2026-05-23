@@ -351,3 +351,170 @@
     grid-template-columns: 210px minmax(0, 1fr);
   }
 }
+
+/* Rainfall Animation */
+.rainfall-animation {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 10;
+}
+
+.rainfall-drops {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.rainfall-drops.active {
+  animation: fadeInRain 0.3s ease-in forwards;
+}
+
+@keyframes fadeInRain {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Light Rain Animation */
+.rain-drop.light {
+  position: absolute;
+  top: 0;
+  width: 1.5px;
+  height: 6px;
+  background: linear-gradient(to bottom, rgba(96, 165, 250, 0.6), rgba(96, 165, 250, 0));
+  animation: fallRainLight linear infinite;
+}
+
+@keyframes fallRainLight {
+  from {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.rain-drop.light:nth-child(1) { left: 15%; animation-duration: 1.5s; animation-delay: 0s; }
+.rain-drop.light:nth-child(2) { left: 35%; animation-duration: 1.6s; animation-delay: 0.2s; }
+.rain-drop.light:nth-child(3) { left: 55%; animation-duration: 1.5s; animation-delay: 0.4s; }
+.rain-drop.light:nth-child(4) { left: 75%; animation-duration: 1.7s; animation-delay: 0.1s; }
+.rain-drop.light:nth-child(5) { left: 45%; animation-duration: 1.55s; animation-delay: 0.3s; }
+
+/* Moderate Rain Animation */
+.rain-drop.moderate {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 8px;
+  background: linear-gradient(to bottom, rgba(59, 130, 246, 0.7), rgba(59, 130, 246, 0));
+  animation: fallRainModerate linear infinite;
+}
+
+@keyframes fallRainModerate {
+  from {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.rain-drop.moderate:nth-child(1) { left: 10%; animation-duration: 0.9s; animation-delay: 0s; }
+.rain-drop.moderate:nth-child(2) { left: 20%; animation-duration: 0.95s; animation-delay: 0.1s; }
+.rain-drop.moderate:nth-child(3) { left: 30%; animation-duration: 0.88s; animation-delay: 0.2s; }
+.rain-drop.moderate:nth-child(4) { left: 40%; animation-duration: 1s; animation-delay: 0.15s; }
+.rain-drop.moderate:nth-child(5) { left: 50%; animation-duration: 0.85s; animation-delay: 0.3s; }
+.rain-drop.moderate:nth-child(6) { left: 60%; animation-duration: 0.92s; animation-delay: 0.1s; }
+.rain-drop.moderate:nth-child(7) { left: 70%; animation-duration: 0.87s; animation-delay: 0.25s; }
+.rain-drop.moderate:nth-child(8) { left: 80%; animation-duration: 0.9s; animation-delay: 0.05s; }
+
+/* Heavy Rain Animation */
+.rain-drop.heavy {
+  position: absolute;
+  top: 0;
+  width: 2.5px;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(37, 99, 235, 0.85), rgba(37, 99, 235, 0));
+  animation: fallRainHeavy linear infinite;
+}
+
+@keyframes fallRainHeavy {
+  from {
+    transform: translateY(-15px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.rain-drop.heavy:nth-child(1) { left: 8%; animation-duration: 0.6s; animation-delay: 0s; }
+.rain-drop.heavy:nth-child(2) { left: 12%; animation-duration: 0.65s; animation-delay: 0.05s; }
+.rain-drop.heavy:nth-child(3) { left: 20%; animation-duration: 0.58s; animation-delay: 0.1s; }
+.rain-drop.heavy:nth-child(4) { left: 28%; animation-duration: 0.62s; animation-delay: 0.08s; }
+.rain-drop.heavy:nth-child(5) { left: 36%; animation-duration: 0.59s; animation-delay: 0.15s; }
+.rain-drop.heavy:nth-child(6) { left: 44%; animation-duration: 0.64s; animation-delay: 0.03s; }
+.rain-drop.heavy:nth-child(7) { left: 52%; animation-duration: 0.6s; animation-delay: 0.12s; }
+.rain-drop.heavy:nth-child(8) { left: 60%; animation-duration: 0.63s; animation-delay: 0.06s; }
+.rain-drop.heavy:nth-child(9) { left: 68%; animation-duration: 0.61s; animation-delay: 0.09s; }
+.rain-drop.heavy:nth-child(10) { left: 76%; animation-duration: 0.65s; animation-delay: 0.02s; }
+.rain-drop.heavy:nth-child(11) { left: 84%; animation-duration: 0.58s; animation-delay: 0.14s; }
+.rain-drop.heavy:nth-child(12) { left: 92%; animation-duration: 0.62s; animation-delay: 0.07s; }
+
+/* Violent Rain Animation */
+.rain-drop.violent {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 12px;
+  background: linear-gradient(to bottom, rgba(29, 78, 216, 0.95), rgba(29, 78, 216, 0));
+  animation: fallRainViolent linear infinite;
+}
+
+@keyframes fallRainViolent {
+  from {
+    transform: translateY(-20px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.rain-drop.violent:nth-child(1) { left: 5%; animation-duration: 0.4s; animation-delay: 0s; }
+.rain-drop.violent:nth-child(2) { left: 8%; animation-duration: 0.42s; animation-delay: 0.02s; }
+.rain-drop.violent:nth-child(3) { left: 12%; animation-duration: 0.39s; animation-delay: 0.05s; }
+.rain-drop.violent:nth-child(4) { left: 16%; animation-duration: 0.41s; animation-delay: 0.01s; }
+.rain-drop.violent:nth-child(5) { left: 20%; animation-duration: 0.38s; animation-delay: 0.04s; }
+.rain-drop.violent:nth-child(6) { left: 24%; animation-duration: 0.43s; animation-delay: 0.03s; }
+.rain-drop.violent:nth-child(7) { left: 28%; animation-duration: 0.4s; animation-delay: 0.06s; }
+.rain-drop.violent:nth-child(8) { left: 32%; animation-duration: 0.41s; animation-delay: 0s; }
+.rain-drop.violent:nth-child(9) { left: 36%; animation-duration: 0.39s; animation-delay: 0.02s; }
+.rain-drop.violent:nth-child(10) { left: 40%; animation-duration: 0.42s; animation-delay: 0.05s; }
+.rain-drop.violent:nth-child(11) { left: 44%; animation-duration: 0.4s; animation-delay: 0.01s; }
+.rain-drop.violent:nth-child(12) { left: 48%; animation-duration: 0.38s; animation-delay: 0.04s; }
+.rain-drop.violent:nth-child(13) { left: 52%; animation-duration: 0.41s; animation-delay: 0.03s; }
+.rain-drop.violent:nth-child(14) { left: 56%; animation-duration: 0.4s; animation-delay: 0.06s; }
+.rain-drop.violent:nth-child(15) { left: 60%; animation-duration: 0.42s; animation-delay: 0s; }
+.rain-drop.violent:nth-child(16) { left: 64%; animation-duration: 0.39s; animation-delay: 0.02s; }
+.rain-drop.violent:nth-child(17) { left: 68%; animation-duration: 0.41s; animation-delay: 0.05s; }
+.rain-drop.violent:nth-child(18) { left: 72%; animation-duration: 0.4s; animation-delay: 0.01s; }
+.rain-drop.violent:nth-child(19) { left: 76%; animation-duration: 0.38s; animation-delay: 0.04s; }
+.rain-drop.violent:nth-child(20) { left: 80%; animation-duration: 0.43s; animation-delay: 0.03s; }
+.rain-drop.violent:nth-child(21) { left: 84%; animation-duration: 0.4s; animation-delay: 0.06s; }
+.rain-drop.violent:nth-child(22) { left: 88%; animation-duration: 0.41s; animation-delay: 0s; }
+.rain-drop.violent:nth-child(23) { left: 92%; animation-duration: 0.39s; animation-delay: 0.02s; }
+.rain-drop.violent:nth-child(24) { left: 96%; animation-duration: 0.42s; animation-delay: 0.05s; }
