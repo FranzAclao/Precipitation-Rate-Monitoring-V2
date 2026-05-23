@@ -7,7 +7,7 @@ import AnalysisPage from "@/pages/analysis/analysis";
 import AlertsPage from "@/pages/alerts/alerts.jsx";
 import { 
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
-  RefreshCcw, CheckCircle2, AlertCircle, XCircle
+  RefreshCcw, CheckCircle2, AlertCircle, XCircle, CircleHelp
 } from "lucide-react";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
@@ -284,28 +284,20 @@ function WaterLevelSection({ node1, node2 }) {
 
   return (
     <section className="water-level-section">
-      <div className="space-y-5">
+      <div className="space-y-4">
         <div className="water-level-top-shell">
           <div className="water-level-header">
             <div>
               <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
-              <p className="water-level-subtitle">i-monitor and kanal chuy kay basin taas ang tubig.</p>
+              <p className="water-level-subtitle">i-monitor ang kanal chuy kay basin taas ang tubig.</p>
               <div className="water-level-status-row">
               </div>
             </div>
+            <WaterLevelGuideHelp activeLevel={sectionRisk} />
           </div>
           <div className="water-level-summary-grid">
             {nodes.map((item) => (
-              <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
-            ))}
-          </div>
-        </div>
-        <div className="water-level-bottom-grid">
-          <FloodRiskStack activeLevel={sectionRisk} maxLevel={getGuideMaxLevel(node1, node2)} />
-
-          <div className="water-level-canal-grid">
-            {nodes.map((item) => (
-              <CanalPanel key={item.key} title={item.title} node={item.node} />
+              <NodeSummaryCard key={item.key} nodeKey={item.key} title={item.title} node={item.node} />
             ))}
           </div>
         </div>
@@ -392,16 +384,20 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
   );
 }
 
-function NodeSummaryCard({ title, node }) {
+function NodeSummaryCard({ nodeKey, title, node }) {
   const status = getNodeStatus(node);
   const trend = getNodeTrend(node);
-  const hasExceededLevel = isAboveWaterLevelLimit(node);
   const isOffline = node?.status === "offline";
   const iconTone = getNodeIconTone(status, isOffline);
   const hoverTone = getNodeHoverTone(status, isOffline);
+  const canalStatus = getCanalStatusValue(status);
+  const thresholdLevel = getCanalThresholdLevel(nodeKey, node);
+  const delta = getCanalThresholdDelta(node, thresholdLevel);
+  const deltaLabel = getCanalDeltaLabel(delta, getNodeUnit(node));
+  const deltaMetricLabel = delta !== null && delta < 0 ? "Below Threshold" : "Above Threshold";
 
   return (
-    <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col justify-between min-h-[176px] group ${
+    <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col min-h-[176px] group ${
       isOffline
         ? ""
         : hoverTone
@@ -416,10 +412,10 @@ function NodeSummaryCard({ title, node }) {
           <div className={`p-2.5 rounded-xl transition-colors duration-300 ${iconTone}`}>
             <Waves className="w-5 h-5" />
           </div>
-          {hasExceededLevel && (
+          {status.hasData && delta !== null && delta > 0 && (
             <div className="water-level-warning">
               <AlertTriangle className="h-3.5 w-3.5" />
-              Water level exceeded 55 cm
+              Water level exceeded {thresholdLevel} {getNodeUnit(node)}
             </div>
           )}
         </div>
@@ -428,6 +424,34 @@ function NodeSummaryCard({ title, node }) {
         <NodeMiniStat label="Level Status" value={status.badge} tone={status.meta.text} />
         <NodeMiniStat label="Trend" value={trend.value} tone={trend.tone} />
         <NodeMiniStat label="Last Updated" value={formatNodeTime(node?.timestamp)} />
+      </div>
+      <div className="mt-4">
+        <div className="water-level-visual">
+          <CanalSvg
+            level={node?.level}
+            maxLevel={node?.maxLevel}
+            status={canalStatus}
+            hasData={status.hasData}
+            thresholdLevel={thresholdLevel}
+          />
+        </div>
+        <div className="canal-metric-grid">
+          <div className="canal-metric-card">
+            <p className="canal-metric-label">Current</p>
+            <p className="canal-metric-value">{status.hasData ? formatNodeLevel(node) : "--"}</p>
+          </div>
+          <div className="canal-metric-card">
+            <p className="canal-metric-label">Threshold</p>
+            <p className="canal-metric-value">{status.hasData ? `${thresholdLevel} ${getNodeUnit(node)}` : "--"}</p>
+          </div>
+          <div className="canal-metric-card">
+            <p className="canal-metric-label">{deltaMetricLabel}</p>
+            <p className={`canal-metric-value ${delta !== null && delta >= 0 ? "canal-metric-value-alert" : ""}`}>{status.hasData ? deltaLabel : "--"}</p>
+          </div>
+        </div>
+        <p className="water-level-note">
+          {status.hasData ? getCanalSummaryMessage(status.normalized, delta, getNodeUnit(node)) : "Awaiting telemetry from this monitoring node."}
+        </p>
       </div>
     </div>
   );
@@ -442,111 +466,73 @@ function NodeMiniStat({ label, value, tone = "text-foreground" }) {
   );
 }
 
-function FloodRiskStack({ activeLevel, maxLevel }) {
+function WaterLevelGuideHelp({ activeLevel }) {
   const levels = [
     {
-      key: "SAFE",
-      label: "Safe",
-      description: "Normal water level",
-      tint: "bg-[#9edcff] border-[#68b9e8] dark:bg-[#173c57] dark:border-[#2f6288]",
-      text: "text-slate-950",
-      subtext: "text-slate-800 dark:text-sky-100/88",
-      current: "text-sky-700",
-      icon: Check,
-    },
-    {
-      key: "WATCH",
-      label: "Watch",
-      description: "Monitor closely",
-      tint: "bg-[#ffd54a] border-[#e0b93c] dark:bg-[#584b16] dark:border-[#8a7425]",
-      text: "text-slate-950",
-      subtext: "text-slate-800 dark:text-amber-100/88",
-      current: "text-amber-700",
-      icon: Eye,
+      key: "DANGER",
+      label: "Flood Risk",
+      description: "Possible overflow",
+      tone: "danger",
+      icon: AlertTriangle,
+      threshold: "Node 1 >= 50 cm | Node 2 >= 55 cm",
     },
     {
       key: "CAUTION",
       label: "Caution",
       description: "Elevated level",
-      tint: "bg-[#f59b00] border-[#d98200] dark:bg-[#5d3210] dark:border-[#8b4e19]",
-      text: "text-white",
-      subtext: "text-white/90",
-      current: "text-orange-700",
+      tone: "caution",
       icon: CircleAlert,
+      threshold: "36-49 cm",
     },
     {
-      key: "DANGER",
-      label: "Flood Risk",
-      description: "Possible overflow",
-      tint: "bg-[#eb3434] border-[#c62828] dark:bg-[#5c1f28] dark:border-[#8f3445]",
-      text: "text-white",
-      subtext: "text-white/90",
-      current: "text-red-700",
-      icon: AlertTriangle,
+      key: "WATCH",
+      label: "Watch",
+      description: "Monitor closely",
+      tone: "watch",
+      icon: Eye,
+      threshold: "20-35 cm",
+    },
+    {
+      key: "SAFE",
+      label: "Safe",
+      description: "Normal water level",
+      tone: "safe",
+      icon: Check,
+      threshold: "< 20 cm",
     },
   ];
 
   return (
-    <div className="water-level-card">
-      <div className="mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status Guide</p>
-        <p className="mt-2 text-lg font-black tracking-tight text-foreground">Water level Status</p>
-      </div>
-      <div className="water-level-guide">
+    <div className="water-level-help">
+      <button type="button" className="water-level-help-button" aria-label="Water level status guide">
+        <CircleHelp className="h-4 w-4" />
+      </button>
+      <div className="water-level-help-popover">
+        <p className="water-level-help-title">Water level status guide</p>
+        <div className="water-level-help-list">
         {levels.map((level) => {
           const isActive = normalizeLevelLabel(activeLevel) === level.key;
           const Icon = level.icon;
           return (
             <div
               key={level.key}
-              className={`water-level-guide-item transition-all ${level.tint} ${isActive ? "shadow-[0_0_0_1px_rgba(15,23,42,0.08),0_10px_24px_rgba(15,23,42,0.12)] ring-1 ring-black/10" : "shadow-sm"}`}
+              className={`water-level-help-item tone-${level.tone} ${isActive ? "is-active" : ""}`}
             >
-              <div className="water-level-guide-copy">
-                <div className="water-level-guide-top">
-                  <div className="water-level-guide-status">
-                    <span className="water-level-guide-icon">
-                      <Icon className={`h-4 w-4 ${level.text}`} />
-                    </span>
-                    <p className={`text-base font-black tracking-tight ${level.text}`}>{level.label}</p>
-                  </div>
+              <div className="water-level-help-copy">
+                <div className="water-level-help-top">
+                  <span className="water-level-help-icon">
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <p className="water-level-help-label">{level.label}</p>
                 </div>
-                <p className={`water-level-guide-threshold ${level.subtext}`}>{getGuideThresholdText(level.key, maxLevel)}</p>
-                <p className={`water-level-guide-description ${level.subtext}`}>{level.description}</p>
+                <p className="water-level-help-threshold">{level.threshold}</p>
+                <p className="water-level-help-description">{level.description}</p>
               </div>
             </div>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-function CanalPanel({ title, node }) {
-  const status = getNodeStatus(node);
-  const canalStatus = getCanalStatusValue(status);
-  const hasExceededLevel = isAboveWaterLevelLimit(node);
-
-  return (
-    <div className="water-level-card">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="water-level-node-title">{title}</p>
-          <p className="mt-2 text-lg font-black tracking-tight text-foreground">Canal View</p>
         </div>
       </div>
-
-      <div className="water-level-visual">
-        <CanalSvg
-          level={node?.level}
-          maxLevel={node?.maxLevel}
-          status={canalStatus}
-          hasData={status.hasData}
-        />
-
-      </div>
-      <p className="water-level-note">
-        {status.hasData ? getStatusDescription(canalStatus) : "Awaiting telemetry from this monitoring node."}
-      </p>
     </div>
   );
 }
@@ -623,6 +609,24 @@ function formatDepth(value, unit) {
   return `${numeric.toFixed(2)} ${unit}`;
 }
 
+function getCanalThresholdLevel(nodeKey, node) {
+  const unit = getNodeUnit(node);
+  if (unit === "m") return nodeKey === "node2" ? 0.55 : 0.5;
+  return nodeKey === "node2" ? 55 : 50;
+}
+
+function getCanalThresholdDelta(node, thresholdLevel) {
+  const level = toLevelNumber(node?.level);
+  if (level === null || node?.status === "offline") return null;
+  return level - thresholdLevel;
+}
+
+function getCanalDeltaLabel(delta, unit) {
+  if (delta === null) return "--";
+  const prefix = delta >= 0 ? "+" : "-";
+  return `${prefix}${Math.abs(delta).toFixed(2)} ${unit}`;
+}
+
 function normalizeLevelLabel(label) {
   const normalized = String(label || "MONITORING").trim().toUpperCase();
   if (normalized === "WARNING") return "CAUTION";
@@ -687,11 +691,11 @@ function getNodeIconTone(status, isOffline) {
 }
 
 function getNodeHoverTone(status, isOffline) {
-  if (isOffline) return "opacity-80 bg-muted/60";
+  if (isOffline) return "opacity-80 bg-muted/60 hover:shadow-[0_8px_24px_rgba(15,23,42,0.08)]";
   if (status?.normalized === "DANGER") {
-    return "hover:border-red-400/70 hover:shadow-[0_8px_24px_rgba(239,68,68,0.2)] hover:-translate-y-1";
+    return "hover:border-red-400/70 hover:shadow-[0_14px_32px_rgba(239,68,68,0.22)]";
   }
-  return "hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1";
+  return "hover:border-brand-teal/40 hover:shadow-[0_14px_30px_rgba(69,167,185,0.14)]";
 }
 
 function getSectionLastUpdated(node1, node2) {
@@ -711,8 +715,8 @@ function getGuideMaxLevel(node1, node2) {
 function getGuideThresholdText(label, maxLevel) {
   if (label === "SAFE") return `< 20 cm`;
   if (label === "WATCH") return `20-35 cm`;
-  if (label === "CAUTION") return `36-46 cm`;
-  if (label === "DANGER") return `>= 55 cm`;
+  if (label === "CAUTION") return `36-49 cm`;
+  if (label === "DANGER") return `Node 1 >= 50 cm | Node 2 >= 55 cm`;
   return "Threshold pending";
 }
 
@@ -722,6 +726,14 @@ function getStatusDescription(status) {
   if (status === "watch") return "Water level is within the watch range.";
   if (status === "safe") return "Water level is within the normal operating range.";
   return "Awaiting telemetry from this monitoring node.";
+}
+
+function getCanalSummaryMessage(level, delta, unit) {
+  if (delta === null) return "Awaiting telemetry from this monitoring node.";
+  const amount = `${Math.abs(delta).toFixed(2)} ${unit}`;
+  if (delta > 0) return `${getDisplayStatusName(level)} · Water level exceeds the threshold by ${amount}.`;
+  if (delta < 0) return `${getDisplayStatusName(level)} · Water level is below the threshold by ${amount}.`;
+  return `${getDisplayStatusName(level)} · Water level is at the flood threshold.`;
 }
 
 function getOverallStatusMetricCardClass(level) {
