@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
-import { MapPin, Database, Bell, CloudRain, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, Monitor, WifiOff, RefreshCcw } from "lucide-react";
+import { MapPin, Database, Bell, CloudRain, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, WifiOff, RefreshCcw } from "lucide-react";
 
 export default function OverviewPage() {
   const { rain, system, node1, node2, nodes, allLogs, lastUpdate, loading } = useFloodData();
@@ -101,21 +101,29 @@ export default function OverviewPage() {
     <div className="app-page-container">
           <div className="app-page-stack">
             <header className="app-page-header">
-              <p className="app-page-copy">System overview with node locations, recent telemetry, and active alerts.</p>
+              <p className="app-page-copy">System overview with node locations, monitoring status, and active alerts.</p>
             </header>
 
-            <section className="app-card">
-              <div className="app-section-header flex-col lg:flex-row lg:items-start lg:justify-between">
+            <section
+              className="app-card monitoring-overview-shell monitoring-overview-link"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate("/dashboard")}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate("/dashboard");
+                }
+              }}
+            >
+              <div className="app-section-header monitoring-overview-header">
                 <div>
                   <p className="app-eyebrow">Monitoring Overview</p>
                   <h3 className="app-section-title">Monitoring Status</h3>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <PreviewLink icon={<Monitor size={14} />} label="View Monitoring Dashboard" onClick={() => navigate("/dashboard")} />
-                </div>
               </div>
 
-              <div className={`app-subcard px-4 py-4 ${getOverviewStatusCardClass(overallStatus.tone)}`}>
+              <div className="app-subcard monitoring-overview-card px-4 py-4">
                 <div className="monitoring-snapshot-shell">
                   <div className="min-w-0 flex-1">
                     <div className="monitoring-snapshot-top">
