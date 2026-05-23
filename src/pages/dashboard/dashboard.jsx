@@ -174,8 +174,20 @@ export default function Dashboard() {
             </header>
 
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
-              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="In total" icon={<Droplets className="w-5 h-5" />} darkTheme />
+              <MetricCard
+                title="Rain Intensity"
+                value={rain.intensity}
+                subtitle={rain.status === "offline" ? "Offline sensor state" : `${rain.rate}`}
+                icon={<CloudRain className="w-5 h-5" />}
+                darkTheme
+              />
+              <MetricCard
+                title="Accumulated Rainfall"
+                value={rain.total1h}
+                subtitle={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Offline sensor state" : "No active rainfall"}
+                icon={<Droplets className="w-5 h-5" />}
+                darkTheme
+              />
               {telemetryMetrics.map((metric) => (
                 <MetricCard
                   key={metric.title}
@@ -273,31 +285,29 @@ function WaterLevelSection({ node1, node2 }) {
     { key: "node2", title: "Zone 5", node: node2 },
   ];
   const sectionRisk = getSectionRisk(node1, node2);
-  const showAlertBanner = !["SAFE", "MONITORING"].includes(sectionRisk);
-  const riskMeta = getLevelMeta(sectionRisk);
-  const sectionUpdatedAt = getSectionLastUpdated(node1, node2);
 
   return (
     <section className="water-level-section">
       <div className="space-y-5">
-        <div className="water-level-header">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-foreground md:text-2xl">Water Level Overview</h2>
-            <p className="water-level-subtitle">Monitor the canal water level status.</p>
-            <div className="water-level-status-row">
-            </div>
-          </div> 
-          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${riskMeta.solid}`}>
-                <AlertTriangle className="h-4 w-4" />
-                Overall Status: {getDisplayStatusName(sectionRisk)}
+        <div className="water-level-top-shell">
+          <div className="water-level-header">
+            <div>
+              <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
+              <p className="water-level-subtitle">Monitor the canal water level status.</p>
+              <div className="water-level-status-row">
               </div>
+            </div> 
+            <div className="water-level-status-badge">
+                  <AlertTriangle className="h-4 w-4" />
+                  Overall Status: {getDisplayStatusName(sectionRisk)}
+            </div>
+          </div>
+          <div className="water-level-summary-grid">
+            {nodes.map((item) => (
+              <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
+            ))}
+          </div>
         </div>
-        <div className="water-level-summary-grid">
-          {nodes.map((item) => (
-            <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
-          ))}
-        </div>
-
         <div className="water-level-bottom-grid">
           <FloodRiskStack activeLevel={sectionRisk} maxLevel={getGuideMaxLevel(node1, node2)} />
 
@@ -322,7 +332,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
           ? 'opacity-90 text-slate-700'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
         : darkTheme
-          ? 'text-foreground hover:border-white/10 hover:bg-gradient-to-b hover:from-[#004f7a] hover:via-[#00456c] hover:to-[#003250] hover:text-white hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
+          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
           : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
@@ -337,7 +347,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               ? 'bg-slate-100 text-slate-500'
               : 'bg-muted text-muted-foreground'
             : darkTheme
-              ? 'bg-slate-100 text-slate-700 group-hover:bg-white/10 group-hover:text-white'
+              ? 'bg-slate-100 text-slate-700'
               : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
@@ -348,7 +358,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
         <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
           isOffline
             ? darkTheme ? 'text-slate-600' : 'text-muted-foreground'
-            : darkTheme ? 'text-foreground group-hover:text-white' : 'text-foreground'
+            : 'text-foreground'
         }`}>
           {value}
         </div>
@@ -359,7 +369,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-300' : 'text-muted-foreground'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-600' : 'text-muted-foreground'}`}>
               {subtitle}
             </p>
           )}

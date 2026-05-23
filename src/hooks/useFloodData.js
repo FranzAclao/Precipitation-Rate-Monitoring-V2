@@ -9,7 +9,7 @@ const DEFAULT_NODE_DEPTHS_CM = {
 const ALLOWED_NODE_PATHS = ["Node1", "Node2"];
 
 const DEFAULT_STATE = {
-  rain: { intensity: "--", rate: 0, total1h: 0, status: "loading", source: "Detecting..." },
+  rain: { intensity: "--", rate: "0 mm/hr", total1h: "0 mm", status: "loading", source: "Detecting..." },
   system: { mode: "LIVE", label: "Detecting...", subtitle: "Waiting for telemetry", sendReason: null, timestamp: null, details: [] },
   node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
   node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
@@ -241,18 +241,59 @@ function buildHistory(logs) {
 }
 
 function createRainState(rainSourceKey, latestByKey) {
-  const rainNode = rainSourceKey ? latestByKey[rainSourceKey] : null;
-  const rainRate = getRainRateValue(rainNode);
-  const rainfall = getRainfallValue(rainNode);
-  const sourceStatus = rainSourceKey
-    ? (checkOffline(getTimestamp(rainNode)) ? `${rainSourceKey} Offline` : `${rainSourceKey} Active`)
-    : "Detecting...";
+  const preferredKeys = [
+    rainSourceKey,
+    ...Object.keys(latestByKey).filter((key) => key !== rainSourceKey),
+  ].filter(Boolean);
+
+  const candidates = preferredKeys
+    .map((nodeKey) => {
+      const entry = latestByKey[nodeKey];
+      if (!entry) return null;
+
+      const timestamp = getTimestamp(entry);
+      const offline = checkOffline(timestamp);
+      return {
+        nodeKey,
+        entry,
+        offline,
+        rainRate: getRainRateValue(entry),
+        rainfall: getRainfallValue(entry),
+        isRaining: getRainingValue(entry),
+      };
+    })
+    .filter(Boolean);
+
+  const onlineCandidates = candidates.filter((item) => !item.offline);
+  const activeCandidate = onlineCandidates.find((item) => item.isRaining || item.rainRate > 0);
+  const primaryOnlineCandidate = activeCandidate || onlineCandidates[0];
+
+  if (!primaryOnlineCandidate) {
+    return {
+      intensity: "Offline",
+      rate: "No Data",
+      total1h: "No Data",
+      status: "offline",
+      source: candidates.length > 0 ? "All nodes offline" : "Waiting for telemetry",
+    };
+  }
+
+  if (!activeCandidate) {
+    return {
+      intensity: "No Rain",
+      rate: "0 mm/hr",
+      total1h: "0 mm",
+      status: "inactive",
+      source: `${primaryOnlineCandidate.nodeKey} Online`,
+    };
+  }
 
   return {
-    intensity: getRainIntensity(rainRate),
-    rate: `${rainRate.toFixed(1)} mm/hr`,
-    total1h: `${rainfall.toFixed(1)}mm`,
-    source: sourceStatus,
+    intensity: getRainIntensity(activeCandidate.rainRate),
+    rate: `${activeCandidate.rainRate.toFixed(1)} mm/hr`,
+    total1h: `${activeCandidate.rainfall.toFixed(1)} mm`,
+    status: "active",
+    source: `${activeCandidate.nodeKey} Active`,
   };
 }
 

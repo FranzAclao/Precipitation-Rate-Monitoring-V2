@@ -107,6 +107,8 @@
   }
 
   .app-action-button {
-    @apply inline-flex items-center gap-2 rounded-full border border-[#003a5a] bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md transition hover:brightness-110;
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md transition hover:opacity-95;
+    border-color: rgb(24, 76, 128);
+    background: rgb(24, 76, 128);
   }
 }
