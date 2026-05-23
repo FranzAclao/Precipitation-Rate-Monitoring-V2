@@ -219,9 +219,7 @@ export default function Dashboard() {
               />
             </div>
 
-            <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-            <div id="sensor-telemetry" className="app-card mt-8 p-4 sm:p-6 relative overflow-hidden">
+            <div id="sensor-telemetry" className="app-card p-4 sm:p-6 relative overflow-hidden">
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Rainfall Trends</h3>
                 
@@ -252,6 +250,8 @@ export default function Dashboard() {
               </div>
               <RainfallChart data={chartData} />
             </div>
+
+            <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
           </div>
         )}
 
@@ -407,7 +407,6 @@ function NodeSummaryCard({ nodeKey, title, node }) {
   const trend = getNodeTrend(node);
   const isOffline = node?.status === "offline";
   const iconTone = getNodeIconTone(status, isOffline);
-  const hoverTone = getNodeHoverTone(status, isOffline);
   const canalStatus = getCanalStatusValue(status);
   const thresholdLevel = getCanalThresholdLevel(nodeKey, node);
   const delta = getCanalThresholdDelta(node, thresholdLevel);
@@ -415,11 +414,7 @@ function NodeSummaryCard({ nodeKey, title, node }) {
   const deltaMetricLabel = delta !== null && delta < 0 ? "Water Level Below Threshold" : "Water Level Above Threshold";
 
   return (
-    <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col min-h-[176px] group ${
-      isOffline
-        ? ""
-        : hoverTone
-    }`}>
+    <div className="relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col min-h-[176px] group">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <p className="water-level-node-title">{title}</p>
@@ -742,14 +737,6 @@ function getNodeIconTone(status, isOffline) {
   if (status?.normalized === "WATCH") return "bg-yellow-400 text-slate-950";
   if (status?.normalized === "SAFE") return "bg-emerald-500 text-white";
   return "bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white";
-}
-
-function getNodeHoverTone(status, isOffline) {
-  if (isOffline) return "opacity-80 bg-muted/60 hover:shadow-[0_8px_24px_rgba(15,23,42,0.08)]";
-  if (status?.normalized === "DANGER") {
-    return "hover:border-red-400/70 hover:shadow-[0_14px_32px_rgba(239,68,68,0.22)]";
-  }
-  return "hover:border-brand-teal/40 hover:shadow-[0_14px_30px_rgba(69,167,185,0.14)]";
 }
 
 function getSectionLastUpdated(node1, node2) {
