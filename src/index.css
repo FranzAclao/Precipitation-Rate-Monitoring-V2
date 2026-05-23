@@ -116,6 +116,44 @@
     background: rgb(24, 76, 128);
   }
 
+  .overview-status-chip {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-black tracking-[0.04em];
+    border-color: rgba(148, 163, 184, 0.24);
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .overview-status-chip-icon {
+    @apply inline-flex h-4 w-4 items-center justify-center;
+  }
+
+  .overview-status-chip.tone-normal {
+    @apply text-slate-700;
+  }
+
+  .overview-status-chip.tone-watch {
+    @apply text-slate-950;
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(254, 240, 138, 0.9);
+  }
+
+  .overview-status-chip.tone-offline {
+    @apply text-amber-950;
+    border-color: rgba(251, 191, 36, 0.36);
+    background: rgba(254, 243, 199, 0.94);
+  }
+
+  .monitoring-snapshot-shell {
+    @apply flex items-start gap-4;
+  }
+
+  .monitoring-snapshot-top {
+    @apply flex flex-col gap-2 md:flex-row md:items-center md:justify-between;
+  }
+
+  .monitoring-snapshot-pill {
+    @apply inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-xs font-black;
+  }
+
   .app-shell {
     @apply min-h-screen text-foreground font-sans md:h-screen md:overflow-hidden md:p-3;
     background: linear-gradient(180deg, #0a304d 0%, #08263d 48%, #061a2b 100%);

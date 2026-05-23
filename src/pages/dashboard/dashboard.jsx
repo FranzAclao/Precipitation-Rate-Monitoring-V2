@@ -18,7 +18,7 @@ import "./dashboard.css";
 const LEVEL_META = {
   SAFE: {
     pill: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    solid: "border-sky-500 bg-sky-500 text-white",
+    solid: "border-emerald-500 bg-emerald-500 text-white",
     water: "from-emerald-200 via-emerald-300 to-emerald-400",
     surface: "#bbf7d0",
     marker: "bg-emerald-500",
@@ -394,7 +394,7 @@ function NodeSummaryCard({ nodeKey, title, node }) {
   const thresholdLevel = getCanalThresholdLevel(nodeKey, node);
   const delta = getCanalThresholdDelta(node, thresholdLevel);
   const deltaLabel = getCanalDeltaLabel(delta, getNodeUnit(node));
-  const deltaMetricLabel = delta !== null && delta < 0 ? "Below Threshold" : "Above Threshold";
+  const deltaMetricLabel = delta !== null && delta < 0 ? "Water Level Below Threshold" : "Water Level Above Threshold";
 
   return (
     <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col min-h-[176px] group ${
@@ -437,7 +437,7 @@ function NodeSummaryCard({ nodeKey, title, node }) {
         </div>
         <div className="canal-metric-grid">
           <div className="canal-metric-card">
-            <p className="canal-metric-label">Current</p>
+            <p className="canal-metric-label">Current Water Level</p>
             <p className="canal-metric-value">{status.hasData ? formatNodeLevel(node) : "--"}</p>
           </div>
           <div className="canal-metric-card">
@@ -469,20 +469,12 @@ function NodeMiniStat({ label, value, tone = "text-foreground" }) {
 function WaterLevelGuideHelp({ activeLevel }) {
   const levels = [
     {
-      key: "DANGER",
-      label: "Flood Risk",
-      description: "Possible overflow",
-      tone: "danger",
-      icon: AlertTriangle,
-      threshold: "Node 1 >= 50 cm | Node 2 >= 55 cm",
-    },
-    {
-      key: "CAUTION",
-      label: "Caution",
-      description: "Elevated level",
-      tone: "caution",
-      icon: CircleAlert,
-      threshold: "36-49 cm",
+      key: "SAFE",
+      label: "Safe",
+      description: "Normal water level",
+      tone: "safe",
+      icon: Check,
+      threshold: "< 20 cm",
     },
     {
       key: "WATCH",
@@ -493,12 +485,20 @@ function WaterLevelGuideHelp({ activeLevel }) {
       threshold: "20-35 cm",
     },
     {
-      key: "SAFE",
-      label: "Safe",
-      description: "Normal water level",
-      tone: "safe",
-      icon: Check,
-      threshold: "< 20 cm",
+      key: "CAUTION",
+      label: "Caution",
+      description: "Elevated level",
+      tone: "caution",
+      icon: CircleAlert,
+      threshold: "36-49 cm",
+    },
+    {
+      key: "DANGER",
+      label: "Flood Risk",
+      description: "Possible overflow",
+      tone: "danger",
+      icon: AlertTriangle,
+      thresholdLines: ["Node 1 ≥ 50 cm", "Node 2 ≥ 55 cm"],
     },
   ];
 
@@ -508,7 +508,8 @@ function WaterLevelGuideHelp({ activeLevel }) {
         <CircleHelp className="h-4 w-4" />
       </button>
       <div className="water-level-help-popover">
-        <p className="water-level-help-title">Water level status guide</p>
+        <p className="water-level-help-title">Water Level Status Guide</p>
+        <p className="water-level-help-subtitle">Thresholds used to classify canal water level.</p>
         <div className="water-level-help-list">
         {levels.map((level) => {
           const isActive = normalizeLevelLabel(activeLevel) === level.key;
@@ -519,14 +520,27 @@ function WaterLevelGuideHelp({ activeLevel }) {
               className={`water-level-help-item tone-${level.tone} ${isActive ? "is-active" : ""}`}
             >
               <div className="water-level-help-copy">
-                <div className="water-level-help-top">
-                  <span className="water-level-help-icon">
-                    <Icon className="h-3.5 w-3.5" />
-                  </span>
-                  <p className="water-level-help-label">{level.label}</p>
+                <div className="water-level-help-head">
+                  <div className="water-level-help-top">
+                    <span className="water-level-help-icon">
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <p className="water-level-help-label">{level.label}</p>
+                  </div>
+                  {isActive && <span className="water-level-help-current">Current</span>}
                 </div>
-                <p className="water-level-help-threshold">{level.threshold}</p>
-                <p className="water-level-help-description">{level.description}</p>
+                <div className="water-level-help-body">
+                  {level.thresholdLines ? (
+                    <div className="water-level-help-threshold-stack">
+                      {level.thresholdLines.map((line) => (
+                        <p key={line} className="water-level-help-threshold">{line}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="water-level-help-threshold">{level.threshold}</p>
+                  )}
+                  <p className="water-level-help-description">{level.description}</p>
+                </div>
               </div>
             </div>
           );
@@ -686,7 +700,7 @@ function getNodeIconTone(status, isOffline) {
   if (status?.normalized === "DANGER") return "bg-red-500 text-white";
   if (status?.normalized === "CAUTION") return "bg-orange-500 text-white";
   if (status?.normalized === "WATCH") return "bg-yellow-400 text-slate-950";
-  if (status?.normalized === "SAFE") return "bg-sky-500 text-white";
+  if (status?.normalized === "SAFE") return "bg-emerald-500 text-white";
   return "bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white";
 }
 
@@ -760,11 +774,11 @@ function getOverallStatusMetricCardClass(level) {
     subtitle: "text-slate-700 dark:text-amber-100",
   };
   if (normalized === "SAFE") return {
-    card: "border-sky-500 bg-sky-500 text-white shadow-[0_10px_24px_rgba(14,165,233,0.22)] dark:border-sky-500/34 dark:bg-sky-500/16 dark:text-sky-50",
-    eyebrow: "text-sky-100",
-    icon: "bg-white/15 text-white dark:bg-sky-500/18 dark:text-sky-100",
+    card: "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_rgba(16,185,129,0.22)] dark:border-emerald-500/34 dark:bg-emerald-500/16 dark:text-emerald-50",
+    eyebrow: "text-emerald-100",
+    icon: "bg-white/15 text-white dark:bg-emerald-500/18 dark:text-emerald-100",
     value: "text-white",
-    subtitle: "text-sky-100",
+    subtitle: "text-emerald-100",
   };
   return {
     card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)] dark:border-slate-500/28 dark:bg-slate-500/14 dark:text-slate-50",

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
-import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, Monitor } from "lucide-react";
+import { MapPin, Database, Bell, CloudRain, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, Monitor, WifiOff, RefreshCcw } from "lucide-react";
 
 export default function OverviewPage() {
   const { rain, system, node1, node2, nodes, allLogs, lastUpdate, loading } = useFloodData();
@@ -35,44 +35,6 @@ export default function OverviewPage() {
       .slice(0, 5);
   }, [allLogs]);
 
-  const telemetryMetrics = useMemo(() => {
-    const detailMap = new Map((system?.details || []).map((item) => [String(item.nodeKey || "").toLowerCase(), item]));
-
-    const buildMetric = (nodeKey, title) => {
-      const detail = detailMap.get(nodeKey);
-      if (!detail) {
-        return {
-          title,
-          value: "No telemetry",
-          subtitle: "Waiting for data",
-        };
-      }
-
-      return {
-        title,
-        value: detail.offline ? "Offline" : getTelemetryLabel(detail.sendReason),
-        subtitle: detail.timestamp || "No timestamp",
-      };
-    };
-
-    return [
-      {
-        title: "Rain Intensity",
-        value: rain?.intensity || "--",
-        subtitle: rain?.status === "offline" ? "Offline sensor state" : rain?.rate || "Detecting...",
-        icon: <CloudRain className="w-5 h-5" />,
-      },
-      {
-        title: "Accumulated Rainfall",
-        value: rain?.total1h || "--",
-        subtitle: rain?.status === "active" ? "Current rainfall event" : rain?.status === "offline" ? "Offline sensor state" : "No active rainfall",
-        icon: <Droplets className="w-5 h-5" />,
-      },
-      { ...buildMetric("node1", "Node 1 Status"), icon: <Clock className="w-5 h-5" /> },
-      { ...buildMetric("node2", "Node 2 Status"), icon: <Clock className="w-5 h-5" /> },
-    ];
-  }, [rain, system]);
-
   const overallStatus = useMemo(() => {
     const labels = [node1?.label, node2?.label].map(normalizeLevelLabel);
     const top = labels.sort((a, b) => getLevelRank(b) - getLevelRank(a))[0] || "MONITORING";
@@ -85,6 +47,51 @@ export default function OverviewPage() {
       subtitle: anyOffline ? "One or more nodes are offline" : "Current canal status",
     };
   }, [node1, node2]);
+
+  const monitoringSnapshot = useMemo(() => {
+    const nodeStates = [
+      { label: "Node 1", status: node1?.status },
+      { label: "Node 2", status: node2?.status },
+    ];
+    const onlineCount = nodeStates.filter((item) => item.status !== "offline").length;
+    const offlineCount = nodeStates.length - onlineCount;
+    const rainfallState =
+      rain?.status === "offline" ? "Rain sensor offline"
+        : rain?.status === "active" ? `${rain?.intensity || "Rain"} rainfall`
+          : "No active rainfall";
+
+    const headline =
+      offlineCount > 0 ? "Attention needed"
+        : rain?.status === "active" ? "Monitoring active rainfall"
+          : "System monitoring normally";
+
+    const summary = `${onlineCount} of ${nodeStates.length} nodes online · ${rainfallState} · Last sync: ${lastUpdate}`;
+
+    const chips = [
+      {
+        label: rainfallState,
+        tone: rain?.status === "active" ? "watch" : rain?.status === "offline" ? "offline" : "normal",
+        icon: <CloudRain className="h-3.5 w-3.5" />,
+      },
+      {
+        label: node1?.status === "offline" ? "Node 1 Offline" : "Node 1 Active",
+        tone: node1?.status === "offline" ? "offline" : "normal",
+        icon: node1?.status === "offline" ? <WifiOff className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />,
+      },
+      {
+        label: node2?.status === "offline" ? "Node 2 Offline" : "Node 2 Active",
+        tone: node2?.status === "offline" ? "offline" : "normal",
+        icon: node2?.status === "offline" ? <WifiOff className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />,
+      },
+      {
+        label: `Last Sync ${lastUpdate}`,
+        tone: "normal",
+        icon: <RefreshCcw className="h-3.5 w-3.5" />,
+      },
+    ];
+
+    return { headline, summary, chips };
+  }, [node1, node2, rain, lastUpdate]);
 
   if (loading) {
     return <AppLoader label="Loading Overview..." />;
@@ -101,38 +108,30 @@ export default function OverviewPage() {
               <div className="app-section-header flex-col lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="app-eyebrow">Monitoring Overview</p>
-                  <h3 className="app-section-title">Dashboard metrics overview</h3>
+                  <h3 className="app-section-title">Monitoring Status</h3>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <PreviewLink icon={<Monitor size={14} />} label="View Monitoring" onClick={() => navigate("/dashboard")} />
+                  <PreviewLink icon={<Monitor size={14} />} label="View Monitoring Dashboard" onClick={() => navigate("/dashboard")} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {telemetryMetrics.map((metric) => (
-                  <OverviewMetricCard key={metric.title} title={metric.title} value={metric.value} subtitle={metric.subtitle} icon={metric.icon} />
-                ))}
-              </div>
-
-              <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                <button
-                  type="button"
-                  onClick={() => navigate("/dashboard#sensor-telemetry")}
-                  className="rounded-2xl border px-4 py-4 text-center text-sm font-bold text-white shadow-sm transition hover:opacity-95"
-                  style={{ borderColor: "rgb(24, 76, 128)", background: "rgb(24, 76, 128)" }}
-                >
-                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-200">View Rainfall Trends</div>
-                  <div className="mt-2 text-base font-black text-white">Go To Monitoring Dashboard</div>
-                </button>
-                <div className={`app-subcard px-4 py-3 ${getOverviewStatusCardClass(overallStatus.tone)}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em]">Overall Status</p>
-                      <p className="mt-2 text-lg font-black">{overallStatus.label}</p>
-                      <p className="mt-1 text-sm font-medium">{overallStatus.subtitle}</p>
+              <div className={`app-subcard px-4 py-4 ${getOverviewStatusCardClass(overallStatus.tone)}`}>
+                <div className="monitoring-snapshot-shell">
+                  <div className="min-w-0 flex-1">
+                    <div className="monitoring-snapshot-top">
+                      <div className={`ml-auto monitoring-snapshot-pill ${getOverviewStatusPillClass(overallStatus.tone)}`}>
+                        {getStatusIcon(overallStatus.tone)}
+                        <span>{overallStatus.label}</span>
+                      </div>
                     </div>
-                    <div className="rounded-xl bg-white/15 p-2">
-                      {getStatusIcon(overallStatus.tone)}
+                    <p className="mt-2 text-sm font-semibold text-current/80">{monitoringSnapshot.summary}</p>
+                    <div className="mt-3 flex flex-wrap gap-2.5">
+                      {monitoringSnapshot.chips.map((chip) => (
+                        <div key={chip.label} className={`overview-status-chip tone-${chip.tone}`}>
+                          <span className="overview-status-chip-icon">{chip.icon}</span>
+                          <span>{chip.label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -197,21 +196,6 @@ export default function OverviewPage() {
               </section>
             </div>
           </div>
-    </div>
-  );
-}
-
-function OverviewMetricCard({ title, value, subtitle, icon }) {
-  return (
-    <div className="app-subcard shadow-md">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{title}</h4>
-        <div className="rounded-xl bg-slate-100 p-2.5 text-slate-700">
-          {icon}
-        </div>
-      </div>
-      <div className="text-xl font-black tracking-tight text-foreground">{value}</div>
-      <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{subtitle}</p>
     </div>
   );
 }
@@ -291,12 +275,22 @@ function getDisplayStatusName(label) {
 
 function getOverviewStatusCardClass(tone) {
   const normalized = String(tone || "").toUpperCase();
-  if (normalized === "OFFLINE") return "border-amber-300 bg-amber-50 text-amber-900";
-  if (normalized === "DANGER") return "border-red-500 bg-red-600 text-white";
-  if (normalized === "CAUTION") return "border-orange-400 bg-orange-500 text-white";
-  if (normalized === "WATCH") return "border-yellow-300 bg-yellow-300 text-slate-950";
-  if (normalized === "SAFE") return "border-sky-400 bg-sky-500 text-white";
+  if (normalized === "OFFLINE") return "border-amber-200 bg-amber-50/80 text-amber-950";
+  if (normalized === "DANGER") return "border-red-200 bg-red-50/90 text-red-950";
+  if (normalized === "CAUTION") return "border-orange-200 bg-orange-50/90 text-orange-950";
+  if (normalized === "WATCH") return "border-yellow-200 bg-yellow-50/90 text-amber-950";
+  if (normalized === "SAFE") return "border-emerald-200 bg-emerald-50/90 text-emerald-950";
   return "border-slate-300 bg-white text-foreground";
+}
+
+function getOverviewStatusPillClass(tone) {
+  const normalized = String(tone || "").toUpperCase();
+  if (normalized === "OFFLINE") return "border-amber-300 bg-amber-100 text-amber-900";
+  if (normalized === "DANGER") return "border-red-300 bg-red-100 text-red-900";
+  if (normalized === "CAUTION") return "border-orange-300 bg-orange-100 text-orange-900";
+  if (normalized === "WATCH") return "border-yellow-300 bg-yellow-100 text-amber-900";
+  if (normalized === "SAFE") return "border-emerald-300 bg-emerald-100 text-emerald-900";
+  return "border-slate-300 bg-slate-100 text-slate-900";
 }
 
 function getStatusIcon(tone) {

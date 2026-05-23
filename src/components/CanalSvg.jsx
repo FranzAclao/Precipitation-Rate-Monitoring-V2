@@ -3,33 +3,43 @@ import React, { useId } from "react";
 const STATUS_STYLES = {
   safe: {
     water: "#38bdf8",
+    waterDeep: "#0ea5e9",
     waterSoft: "#dbeafe",
     line: "#0284c7",
     badge: "#0369a1",
+    shimmer: "#7dd3fc",
   },
   watch: {
-    water: "#facc15",
-    waterSoft: "#fef3c7",
+    water: "#38bdf8",
+    waterDeep: "#0ea5e9",
+    waterSoft: "#dbeafe",
     line: "#ca8a04",
     badge: "#a16207",
+    shimmer: "#7dd3fc",
   },
   caution: {
-    water: "#fb923c",
-    waterSoft: "#ffedd5",
+    water: "#38bdf8",
+    waterDeep: "#0ea5e9",
+    waterSoft: "#dbeafe",
     line: "#ea580c",
     badge: "#c2410c",
+    shimmer: "#7dd3fc",
   },
   "flood-risk": {
-    water: "#f87171",
-    waterSoft: "#fecaca",
+    water: "#38bdf8",
+    waterDeep: "#0ea5e9",
+    waterSoft: "#dbeafe",
     line: "#dc2626",
     badge: "#991b1b",
+    shimmer: "#7dd3fc",
   },
   "no-data": {
     water: "#cbd5e1",
+    waterDeep: "#94a3b8",
     waterSoft: "#e2e8f0",
     line: "#64748b",
     badge: "#475569",
+    shimmer: "#e2e8f0",
   },
 };
 
@@ -60,16 +70,10 @@ function getScaleTicks(limit) {
   const max = toNumber(limit) || 55;
   const ticks = [];
   for (let value = 0; value <= max; value += 5) {
-    ticks.push({
-      value,
-      ratio: max > 0 ? value / max : 0,
-    });
+    ticks.push({ value, ratio: max > 0 ? value / max : 0 });
   }
   if (ticks[ticks.length - 1]?.value !== max) {
-    ticks.push({
-      value: max,
-      ratio: 1,
-    });
+    ticks.push({ value: max, ratio: 1 });
   }
   return ticks;
 }
@@ -81,8 +85,6 @@ function clamp(value, min, max) {
 export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLevel = 47 }) {
   const ids = useId().replace(/:/g, "");
   const clipId = `canal-water-${ids}`;
-  const wavePrimaryId = `canal-wave-primary-${ids}`;
-  const waveSecondaryId = `canal-wave-secondary-${ids}`;
   const normalizedStatus = hasData ? status : "no-data";
   const style = STATUS_STYLES[normalizedStatus] || STATUS_STYLES["no-data"];
   const unit = getUnit(maxLevel);
@@ -117,17 +119,40 @@ export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLe
   };
 
   const waterBounds = basinXAtY(waterTopY);
+  const wL = waterBounds.left;
+  const wR = waterBounds.right;
+  const wT = waterTopY;
+  const bB = basinBottomY;
+
+  // Wave path generators for each layer
+  const waveDeep = (offset = 0) =>
+    `M ${wL - 10} ${wT + 8 + offset} C ${wL + 20} ${wT + 14} ${wL + 50} ${wT + 2} ${wL + 80} ${wT + 9} C ${wL + 110} ${wT + 16} ${wL + 130} ${wT + 4} ${wR + 10} ${wT + 9 + offset} L ${wR + 12} ${bB + 4} L ${wL - 12} ${bB + 4} Z`;
+  const waveMid = (offset = 0) =>
+    `M ${wL - 10} ${wT + 4 + offset} C ${wL + 18} ${wT - 2} ${wL + 40} ${wT + 10} ${wL + 64} ${wT + 4} C ${wL + 88} ${wT - 2} ${wL + 110} ${wT + 8} ${wL + 132} ${wT + 3} C ${wL + 146} ${wT - 1} ${wR - 4} ${wT + 2} ${wR + 10} ${wT + 4 + offset} L ${wR + 12} ${bB + 4} L ${wL - 12} ${bB + 4} Z`;
+  const waveTop = (offset = 0) =>
+    `M ${wL - 10} ${wT + 2 + offset} C ${wL + 10} ${wT - 5} ${wL + 30} ${wT - 5} ${wL + 50} ${wT + 2} C ${wL + 72} ${wT + 9} ${wL + 94} ${wT + 9} ${wL + 116} ${wT + 2} C ${wL + 132} ${wT - 3} ${wL + 146} ${wT - 3} ${wR + 10} ${wT + 2 + offset} L ${wR + 12} ${bB + 4} L ${wL - 12} ${bB + 4} Z`;
+
+  const surfaceLine = (yOff = 0) =>
+    `M ${wL - 2} ${wT + yOff} C ${wL + 18} ${wT - 4 + yOff} ${wL + 36} ${wT - 4 + yOff} ${wL + 56} ${wT + yOff} C ${wL + 78} ${wT + 4 + yOff} ${wL + 96} ${wT + 4 + yOff} ${wL + 116} ${wT + yOff} C ${wL + 132} ${wT - 3 + yOff} ${wL + 146} ${wT - 3 + yOff} ${wR + 2} ${wT + yOff}`;
 
   return (
-    <svg className="h-full w-full" viewBox="0 0 420 220" preserveAspectRatio="none" role="img" aria-label="Canal water level cross-section">
+    <svg
+      className="h-full w-full"
+      viewBox="0 0 420 220"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Canal water level cross-section"
+    >
       <defs>
         <clipPath id={clipId}>
-          <path d={`M ${basinTopLeftX} ${basinTopY} L ${basinTopRightX} ${basinTopY} L ${basinBottomRightX} ${basinBottomY} L ${basinBottomLeftX} ${basinBottomY} Z`} />
+          <path d={`M ${basinTopLeftX} ${basinTopY} L ${basinTopRightX} ${basinTopY} L ${basinBottomRightX} ${basinBottomY + 4} L ${basinBottomLeftX} ${basinBottomY + 4} Z`} />
         </clipPath>
       </defs>
 
+      {/* Background card */}
       <rect x="16" y="14" width="388" height="192" rx="18" fill="rgba(255,255,255,0.42)" stroke="#dbe4ef" />
 
+      {/* Scale ticks */}
       {getScaleTicks(limit).map((item) => {
         const y = basinBottomY - (item.ratio * (basinBottomY - basinTopY));
         return (
@@ -141,11 +166,11 @@ export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLe
         );
       })}
 
+      {/* Canal walls */}
       <g>
         <path d={`M ${wallOuterTopLeftX} 54 L ${basinTopLeftX} ${basinTopY} L ${basinBottomLeftX} ${basinBottomY} L ${wallOuterBottomLeftX} ${wallBottomY} Z`} fill="#dbe4ef" />
         <path d={`M ${basinTopRightX} ${basinTopY} L ${wallOuterTopRightX} 54 L ${wallOuterBottomRightX} ${wallBottomY} L ${basinBottomRightX} ${basinBottomY} Z`} fill="#dbe4ef" />
         <path d={`M ${wallOuterBottomLeftX} ${wallBottomY} L ${wallOuterBottomRightX} ${wallBottomY} L ${basinBottomRightX} ${basinBottomY} L ${basinBottomLeftX} ${basinBottomY} Z`} fill="#cbd5e1" />
-
         <path d={`M ${basinTopLeftX} ${basinTopY} L ${basinBottomLeftX} ${basinBottomY}`} fill="none" stroke="#334155" strokeWidth="3.6" strokeLinecap="round" />
         <path d={`M ${basinTopRightX} ${basinTopY} L ${basinBottomRightX} ${basinBottomY}`} fill="none" stroke="#334155" strokeWidth="3.6" strokeLinecap="round" />
         <path d={`M ${basinBottomLeftX} ${basinBottomY} L ${basinBottomRightX} ${basinBottomY}`} fill="none" stroke="#334155" strokeWidth="4.8" strokeLinecap="round" />
@@ -156,31 +181,161 @@ export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLe
       {hasData ? (
         <>
           <g clipPath={`url(#${clipId})`}>
-            <rect x={basinTopLeftX - 12} y={waterTopY} width={(basinTopRightX - basinTopLeftX) + 24} height={basinBottomY - waterTopY + 6} fill={style.water} fillOpacity="0.84" />
-            <path
-              id={wavePrimaryId}
-              d={`M ${waterBounds.left - 10} ${waterTopY + 2} C ${waterBounds.left + 10} ${waterTopY - 5} ${waterBounds.left + 30} ${waterTopY - 5} ${waterBounds.left + 50} ${waterTopY + 2} C ${waterBounds.left + 72} ${waterTopY + 9} ${waterBounds.left + 94} ${waterTopY + 9} ${waterBounds.left + 116} ${waterTopY + 2} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 10} ${waterTopY + 2} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z`}
-              fill="#ffffff"
-              fillOpacity="0.1"
+            {/* ── Base water fill ── */}
+            <rect
+              x={wL - 12}
+              y={wT}
+              width={(wR - wL) + 24}
+              height={bB - wT + 6}
+              fill={style.waterDeep}
+              fillOpacity="0.82"
             />
-            <animateTransform href={`#${wavePrimaryId}`} attributeName="transform" type="translate" values="-5 0; 5 0; -5 0" dur="6.2s" repeatCount="indefinite" />
+
+            {/* ── Caustic floor patches ── */}
+            <ellipse cx={wL + 30} cy={bB - 8} rx="14" ry="4" fill={style.shimmer} fillOpacity="0.28">
+              <animate attributeName="cx" values={`${wL+30};${wL+38};${wL+24};${wL+30}`} dur="6.1s" repeatCount="indefinite" />
+              <animate attributeName="rx" values="14;18;11;14" dur="6.1s" repeatCount="indefinite" />
+              <animate attributeName="fill-opacity" values="0.28;0.16;0.34;0.28" dur="6.1s" repeatCount="indefinite" />
+            </ellipse>
+            <ellipse cx={wL + 68} cy={bB - 12} rx="10" ry="3" fill={style.shimmer} fillOpacity="0.22">
+              <animate attributeName="cx" values={`${wL+68};${wL+58};${wL+76};${wL+68}`} dur="7.3s" repeatCount="indefinite" />
+              <animate attributeName="rx" values="10;14;8;10" dur="7.3s" repeatCount="indefinite" />
+              <animate attributeName="fill-opacity" values="0.22;0.32;0.14;0.22" dur="7.3s" repeatCount="indefinite" />
+            </ellipse>
+            <ellipse cx={wL + 48} cy={bB - 4} rx="7" ry="2.5" fill={style.shimmer} fillOpacity="0.18">
+              <animate attributeName="cx" values={`${wL+48};${wL+56};${wL+40};${wL+48}`} dur="5s" repeatCount="indefinite" />
+              <animate attributeName="fill-opacity" values="0.18;0.28;0.1;0.18" dur="5s" repeatCount="indefinite" />
+            </ellipse>
+
+            {/* ── Subsurface shimmer streaks ── */}
+            <line x1={wL + 14} y1={wT + 18} x2={wL + 28} y2={wT + 42} stroke={style.shimmer} strokeOpacity="0.18" strokeWidth="2" strokeLinecap="round">
+              <animate attributeName="stroke-opacity" values="0.18;0.06;0.24;0.18" dur="3.8s" repeatCount="indefinite" />
+              <animateTransform attributeName="transform" type="translate" values="0 0;8 0;0 0" dur="3.8s" repeatCount="indefinite" />
+            </line>
+            <line x1={wL + 80} y1={wT + 12} x2={wL + 95} y2={wT + 38} stroke={style.shimmer} strokeOpacity="0.14" strokeWidth="1.5" strokeLinecap="round">
+              <animate attributeName="stroke-opacity" values="0.14;0.24;0.07;0.14" dur="4.9s" repeatCount="indefinite" />
+              <animateTransform attributeName="transform" type="translate" values="0 0;-6 0;0 0" dur="4.9s" repeatCount="indefinite" />
+            </line>
+            <line x1={wL + 46} y1={wT + 22} x2={wL + 58} y2={wT + 48} stroke="#ffffff" strokeOpacity="0.1" strokeWidth="1.2" strokeLinecap="round">
+              <animate attributeName="stroke-opacity" values="0.1;0.2;0.05;0.1" dur="6.2s" repeatCount="indefinite" />
+              <animateTransform attributeName="transform" type="translate" values="0 0;5 0;0 0" dur="6.2s" repeatCount="indefinite" />
+            </line>
+
+            {/* ── Bubble particles ── */}
+            <circle cx={wL + 24} cy={bB} r="1.5" fill="#ffffff" fillOpacity="0">
+              <animate attributeName="cy" values={`${bB};${wT + 8}`} dur="4s" repeatCount="indefinite" begin="0s" />
+              <animate attributeName="fill-opacity" values="0;0.4;0.25;0" dur="4s" repeatCount="indefinite" begin="0s" />
+              <animate attributeName="r" values="1.5;2;1.2;0.4" dur="4s" repeatCount="indefinite" begin="0s" />
+            </circle>
+            <circle cx={wL + 62} cy={bB} r="1.2" fill="#ffffff" fillOpacity="0">
+              <animate attributeName="cy" values={`${bB};${wT + 12}`} dur="5.2s" repeatCount="indefinite" begin="1.4s" />
+              <animate attributeName="fill-opacity" values="0;0.35;0.18;0" dur="5.2s" repeatCount="indefinite" begin="1.4s" />
+              <animate attributeName="r" values="1.2;1.8;1;0.3" dur="5.2s" repeatCount="indefinite" begin="1.4s" />
+            </circle>
+            <circle cx={wL + 42} cy={bB} r="1" fill="#ffffff" fillOpacity="0">
+              <animate attributeName="cy" values={`${bB};${wT + 16}`} dur="3.6s" repeatCount="indefinite" begin="2.8s" />
+              <animate attributeName="fill-opacity" values="0;0.3;0.15;0" dur="3.6s" repeatCount="indefinite" begin="2.8s" />
+            </circle>
+            <circle cx={wL + 86} cy={bB} r="1.4" fill="#ffffff" fillOpacity="0">
+              <animate attributeName="cy" values={`${bB};${wT + 10}`} dur="4.8s" repeatCount="indefinite" begin="0.7s" />
+              <animate attributeName="fill-opacity" values="0;0.28;0.12;0" dur="4.8s" repeatCount="indefinite" begin="0.7s" />
+            </circle>
+
+            {/* ── Wave layer: deep / back (slowest) ── */}
+            <path d={waveDeep(0)} fill={style.water} fillOpacity="0.22">
+              <animate
+                attributeName="d"
+                dur="7s"
+                repeatCount="indefinite"
+                values={`${waveDeep(0)};${waveDeep(-3)};${waveDeep(2)};${waveDeep(0)}`}
+              />
+            </path>
+
+            {/* ── Wave layer: mid ── */}
+            <path d={waveMid(0)} fill={style.water} fillOpacity="0.3">
+              <animate
+                attributeName="d"
+                dur="5.4s"
+                repeatCount="indefinite"
+                values={`
+                  M ${wL-10} ${wT+4} C ${wL+18} ${wT-2} ${wL+40} ${wT+10} ${wL+64} ${wT+4} C ${wL+88} ${wT-2} ${wL+110} ${wT+8} ${wL+132} ${wT+3} C ${wL+146} ${wT-1} ${wR-4} ${wT+2} ${wR+10} ${wT+4} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+6} C ${wL+20} ${wT+2} ${wL+42} ${wT-4} ${wL+66} ${wT+2} C ${wL+90} ${wT+8} ${wL+112} ${wT+2} ${wL+134} ${wT+6} C ${wL+148} ${wT+2} ${wR-4} ${wT+4} ${wR+10} ${wT+6} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+3} C ${wL+16} ${wT-5} ${wL+38} ${wT+6} ${wL+62} ${wT+1} C ${wL+86} ${wT-4} ${wL+108} ${wT+6} ${wL+130} ${wT+2} C ${wL+144} ${wT-2} ${wR-4} ${wT+1} ${wR+10} ${wT+3} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+4} C ${wL+18} ${wT-2} ${wL+40} ${wT+10} ${wL+64} ${wT+4} C ${wL+88} ${wT-2} ${wL+110} ${wT+8} ${wL+132} ${wT+3} C ${wL+146} ${wT-1} ${wR-4} ${wT+2} ${wR+10} ${wT+4} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z
+                `}
+              />
+            </path>
+
+            {/* ── Wave layer: top / surface (fastest) ── */}
+            <path d={waveTop(0)} fill="#ffffff" fillOpacity="0.09">
+              <animate
+                attributeName="d"
+                dur="4.2s"
+                repeatCount="indefinite"
+                values={`
+                  M ${wL-10} ${wT+2} C ${wL+10} ${wT-5} ${wL+30} ${wT-5} ${wL+50} ${wT+2} C ${wL+72} ${wT+9} ${wL+94} ${wT+9} ${wL+116} ${wT+2} C ${wL+132} ${wT-3} ${wL+146} ${wT-3} ${wR+10} ${wT+2} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+3} C ${wL+12} ${wT-2} ${wL+34} ${wT-8} ${wL+56} ${wT-1} C ${wL+78} ${wT+6} ${wL+98} ${wT+10} ${wL+120} ${wT+3} C ${wL+136} ${wT-4} ${wL+150} ${wT-6} ${wR+10} ${wT+1} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+2} C ${wL+8} ${wT-7} ${wL+28} ${wT-2} ${wL+48} ${wT+3} C ${wL+70} ${wT+8} ${wL+92} ${wT+5} ${wL+114} ${wT+1} C ${wL+130} ${wT-5} ${wL+146} ${wT-1} ${wR+10} ${wT+2} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z;
+                  M ${wL-10} ${wT+2} C ${wL+10} ${wT-5} ${wL+30} ${wT-5} ${wL+50} ${wT+2} C ${wL+72} ${wT+9} ${wL+94} ${wT+9} ${wL+116} ${wT+2} C ${wL+132} ${wT-3} ${wL+146} ${wT-3} ${wR+10} ${wT+2} L ${wR+12} ${bB+4} L ${wL-12} ${bB+4} Z
+                `}
+              />
+            </path>
+
+            <path d={surfaceLine(0)} fill="none" stroke="#ffffff" strokeOpacity="0.88" strokeWidth="1.9">
+              <animate
+                attributeName="d"
+                dur="4.2s"
+                repeatCount="indefinite"
+                values={`
+                  ${surfaceLine(0)};
+                  M ${wL-2} ${wT+1} C ${wL+14} ${wT-5} ${wL+34} ${wT-1} ${wL+54} ${wT+2} C ${wL+74} ${wT+5} ${wL+94} ${wT+1} ${wL+114} ${wT-1} C ${wL+130} ${wT-4} ${wL+146} ${wT-5} ${wR+2} ${wT+1};
+                  M ${wL-2} ${wT} C ${wL+20} ${wT-2} ${wL+38} ${wT-6} ${wL+58} ${wT-1} C ${wL+80} ${wT+4} ${wL+98} ${wT+6} ${wL+118} ${wT+1} C ${wL+134} ${wT-2} ${wL+148} ${wT-4} ${wR+2} ${wT};
+                  ${surfaceLine(0)}
+                `}
+              />
+            </path>
+
+            <circle cx={wL + 18} cy={wT} r="1.8" fill="#ffffff" fillOpacity="0.7">
+              <animate attributeName="fill-opacity" values="0.7;0.1;0.85;0.2;0.7" dur="3.1s" repeatCount="indefinite" />
+              <animate attributeName="r" values="1.8;1.2;2.2;1;1.8" dur="3.1s" repeatCount="indefinite" />
+            </circle>
+            <circle cx={wL + 60} cy={wT + 1} r="1.4" fill="#ffffff" fillOpacity="0.5">
+              <animate attributeName="fill-opacity" values="0.5;0.9;0.2;0.7;0.5" dur="4.4s" repeatCount="indefinite" />
+              <animate attributeName="r" values="1.4;2;0.8;1.6;1.4" dur="4.4s" repeatCount="indefinite" />
+            </circle>
+            <circle cx={wL + 95} cy={wT - 1} r="1" fill="#ffffff" fillOpacity="0.6">
+              <animate attributeName="fill-opacity" values="0.6;0.1;0.75;0.3;0.6" dur="2.7s" repeatCount="indefinite" />
+            </circle>
+
             <path
-              id={waveSecondaryId}
-              d={`M ${waterBounds.left - 2} ${waterTopY} C ${waterBounds.left + 18} ${waterTopY - 4} ${waterBounds.left + 36} ${waterTopY - 4} ${waterBounds.left + 56} ${waterTopY} C ${waterBounds.left + 78} ${waterTopY + 4} ${waterBounds.left + 96} ${waterTopY + 4} ${waterBounds.left + 116} ${waterTopY} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 2} ${waterTopY}`}
-              fill="none"
-              stroke="#ffffff"
-              strokeOpacity="0.78"
-              strokeWidth="1.8"
-            />
-            <animateTransform href={`#${waveSecondaryId}`} attributeName="transform" type="translate" values="3 0; -4 0; 3 0" dur="4.8s" repeatCount="indefinite" />
-            <path
-              d={`M ${waterBounds.left + 8} ${waterTopY + 8} C ${waterBounds.left + 28} ${waterTopY + 4} ${waterBounds.left + 46} ${waterTopY + 6} ${waterBounds.left + 66} ${waterTopY + 9} C ${waterBounds.left + 82} ${waterTopY + 12} ${waterBounds.left + 98} ${waterTopY + 12} ${waterBounds.left + 114} ${waterTopY + 8}`}
-              fill="none"
-              stroke="#ffffff"
-              strokeOpacity="0.18"
-              strokeWidth="1.4"
+              d={`M ${wL + 2} ${wT + 2} L ${wL + 6} ${wT + 36}`}
+              stroke={style.shimmer}
+              strokeOpacity="0.35"
+              strokeWidth="1.2"
+              strokeLinecap="round"
             >
-              <animateTransform attributeName="transform" type="translate" values="-3 0; 4 0; -3 0" dur="7.4s" repeatCount="indefinite" />
+              <animate
+                attributeName="d"
+                values={`M ${wL+2} ${wT+2} L ${wL+6} ${wT+36};M ${wL+3} ${wT+3} L ${wL+7} ${wT+37};M ${wL+1} ${wT+2} L ${wL+5} ${wT+36};M ${wL+2} ${wT+2} L ${wL+6} ${wT+36}`}
+                dur="5.4s"
+                repeatCount="indefinite"
+              />
+              <animate attributeName="stroke-opacity" values="0.35;0.18;0.42;0.35" dur="5.4s" repeatCount="indefinite" />
+            </path>
+            <path
+              d={`M ${wR - 2} ${wT + 2} L ${wR - 6} ${wT + 36}`}
+              stroke={style.shimmer}
+              strokeOpacity="0.3"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="d"
+                values={`M ${wR-2} ${wT+2} L ${wR-6} ${wT+36};M ${wR-3} ${wT+3} L ${wR-7} ${wT+37};M ${wR-1} ${wT+2} L ${wR-5} ${wT+36};M ${wR-2} ${wT+2} L ${wR-6} ${wT+36}`}
+                dur="5.4s"
+                repeatCount="indefinite"
+              />
+              <animate attributeName="stroke-opacity" values="0.3;0.15;0.38;0.3" dur="5.4s" repeatCount="indefinite" />
             </path>
           </g>
 
@@ -204,8 +359,8 @@ export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLe
                   Overflowing
                 </text>
               </g>
-              <path d={`M ${waterBounds.left + 44} ${basinTopY - 8} L ${waterBounds.left + 49} ${basinTopY - 15} L ${waterBounds.left + 54} ${basinTopY - 8}`} fill="none" stroke={style.badge} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              <path d={`M ${waterBounds.left + 58} ${basinTopY - 8} L ${waterBounds.left + 63} ${basinTopY - 15} L ${waterBounds.left + 68} ${basinTopY - 8}`} fill="none" stroke={style.badge} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={`M ${wL + 44} ${basinTopY - 8} L ${wL + 49} ${basinTopY - 15} L ${wL + 54} ${basinTopY - 8}`} fill="none" stroke={style.badge} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={`M ${wL + 58} ${basinTopY - 8} L ${wL + 63} ${basinTopY - 15} L ${wL + 68} ${basinTopY - 8}`} fill="none" stroke={style.badge} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </>
           )}
         </>
