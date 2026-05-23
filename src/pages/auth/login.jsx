@@ -19,8 +19,8 @@ export default function Login() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("Login successful:", userCredential.user.email);
-      // Auth state will be picked up by AuthContext, redirect via ProtectedRoute
-      setTimeout(() => navigate("/dashboard"), 500);
+      // Auth state will be picked up by AuthContext, redirect to app index (Overview)
+      setTimeout(() => navigate("/", { replace: true }), 500);
     } catch (err) {
       console.error("Login error:", err.code, err.message);
       let errorMessage = "Login failed. Please try again.";
