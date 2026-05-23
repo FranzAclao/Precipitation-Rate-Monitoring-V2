@@ -437,7 +437,7 @@ function NodeSummaryCard({ nodeKey, title, node }) {
         </div>
         <div className="canal-metric-grid">
           <div className="canal-metric-card">
-            <p className="canal-metric-label">Current</p>
+            <p className="canal-metric-label">Current Water Level</p>
             <p className="canal-metric-value">{status.hasData ? formatNodeLevel(node) : "--"}</p>
           </div>
           <div className="canal-metric-card">

@@ -81,8 +81,6 @@ function clamp(value, min, max) {
 export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLevel = 47 }) {
   const ids = useId().replace(/:/g, "");
   const clipId = `canal-water-${ids}`;
-  const wavePrimaryId = `canal-wave-primary-${ids}`;
-  const waveSecondaryId = `canal-wave-secondary-${ids}`;
   const normalizedStatus = hasData ? status : "no-data";
   const style = STATUS_STYLES[normalizedStatus] || STATUS_STYLES["no-data"];
   const unit = getUnit(maxLevel);
@@ -158,29 +156,49 @@ export default function CanalSvg({ level, maxLevel, status, hasData, thresholdLe
           <g clipPath={`url(#${clipId})`}>
             <rect x={basinTopLeftX - 12} y={waterTopY} width={(basinTopRightX - basinTopLeftX) + 24} height={basinBottomY - waterTopY + 6} fill={style.water} fillOpacity="0.84" />
             <path
-              id={wavePrimaryId}
               d={`M ${waterBounds.left - 10} ${waterTopY + 2} C ${waterBounds.left + 10} ${waterTopY - 5} ${waterBounds.left + 30} ${waterTopY - 5} ${waterBounds.left + 50} ${waterTopY + 2} C ${waterBounds.left + 72} ${waterTopY + 9} ${waterBounds.left + 94} ${waterTopY + 9} ${waterBounds.left + 116} ${waterTopY + 2} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 10} ${waterTopY + 2} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z`}
               fill="#ffffff"
-              fillOpacity="0.1"
-            />
-            <animateTransform href={`#${wavePrimaryId}`} attributeName="transform" type="translate" values="-5 0; 5 0; -5 0" dur="6.2s" repeatCount="indefinite" />
+              fillOpacity="0.08"
+            >
+              <animate
+                attributeName="d"
+                dur="5.4s"
+                repeatCount="indefinite"
+                values={`
+M ${waterBounds.left - 10} ${waterTopY + 2} C ${waterBounds.left + 10} ${waterTopY - 5} ${waterBounds.left + 30} ${waterTopY - 5} ${waterBounds.left + 50} ${waterTopY + 2} C ${waterBounds.left + 72} ${waterTopY + 9} ${waterBounds.left + 94} ${waterTopY + 9} ${waterBounds.left + 116} ${waterTopY + 2} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 10} ${waterTopY + 2} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z;
+M ${waterBounds.left - 10} ${waterTopY + 3} C ${waterBounds.left + 12} ${waterTopY - 2} ${waterBounds.left + 34} ${waterTopY - 8} ${waterBounds.left + 56} ${waterTopY - 1} C ${waterBounds.left + 78} ${waterTopY + 6} ${waterBounds.left + 98} ${waterTopY + 10} ${waterBounds.left + 120} ${waterTopY + 3} C ${waterBounds.left + 136} ${waterTopY - 4} ${waterBounds.left + 150} ${waterTopY - 6} ${waterBounds.right + 10} ${waterTopY + 1} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z;
+M ${waterBounds.left - 10} ${waterTopY + 2} C ${waterBounds.left + 8} ${waterTopY - 7} ${waterBounds.left + 28} ${waterTopY - 2} ${waterBounds.left + 48} ${waterTopY + 3} C ${waterBounds.left + 70} ${waterTopY + 8} ${waterBounds.left + 92} ${waterTopY + 5} ${waterBounds.left + 114} ${waterTopY + 1} C ${waterBounds.left + 130} ${waterTopY - 5} ${waterBounds.left + 146} ${waterTopY - 1} ${waterBounds.right + 10} ${waterTopY + 2} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z;
+M ${waterBounds.left - 10} ${waterTopY + 2} C ${waterBounds.left + 10} ${waterTopY - 5} ${waterBounds.left + 30} ${waterTopY - 5} ${waterBounds.left + 50} ${waterTopY + 2} C ${waterBounds.left + 72} ${waterTopY + 9} ${waterBounds.left + 94} ${waterTopY + 9} ${waterBounds.left + 116} ${waterTopY + 2} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 10} ${waterTopY + 2} L ${waterBounds.right + 12} ${basinBottomY + 4} L ${waterBounds.left - 12} ${basinBottomY + 4} Z
+                `}
+              />
+            </path>
             <path
-              id={waveSecondaryId}
               d={`M ${waterBounds.left - 2} ${waterTopY} C ${waterBounds.left + 18} ${waterTopY - 4} ${waterBounds.left + 36} ${waterTopY - 4} ${waterBounds.left + 56} ${waterTopY} C ${waterBounds.left + 78} ${waterTopY + 4} ${waterBounds.left + 96} ${waterTopY + 4} ${waterBounds.left + 116} ${waterTopY} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 2} ${waterTopY}`}
               fill="none"
               stroke="#ffffff"
-              strokeOpacity="0.78"
-              strokeWidth="1.8"
-            />
-            <animateTransform href={`#${waveSecondaryId}`} attributeName="transform" type="translate" values="3 0; -4 0; 3 0" dur="4.8s" repeatCount="indefinite" />
+              strokeOpacity="0.84"
+              strokeWidth="1.9"
+            >
+              <animate
+                attributeName="d"
+                dur="4.2s"
+                repeatCount="indefinite"
+                values={`
+M ${waterBounds.left - 2} ${waterTopY} C ${waterBounds.left + 18} ${waterTopY - 4} ${waterBounds.left + 36} ${waterTopY - 4} ${waterBounds.left + 56} ${waterTopY} C ${waterBounds.left + 78} ${waterTopY + 4} ${waterBounds.left + 96} ${waterTopY + 4} ${waterBounds.left + 116} ${waterTopY} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 2} ${waterTopY};
+M ${waterBounds.left - 2} ${waterTopY + 1} C ${waterBounds.left + 14} ${waterTopY - 5} ${waterBounds.left + 34} ${waterTopY - 1} ${waterBounds.left + 54} ${waterTopY + 2} C ${waterBounds.left + 74} ${waterTopY + 5} ${waterBounds.left + 94} ${waterTopY + 1} ${waterBounds.left + 114} ${waterTopY - 1} C ${waterBounds.left + 130} ${waterTopY - 4} ${waterBounds.left + 146} ${waterTopY - 5} ${waterBounds.right + 2} ${waterTopY + 1};
+M ${waterBounds.left - 2} ${waterTopY} C ${waterBounds.left + 20} ${waterTopY - 2} ${waterBounds.left + 38} ${waterTopY - 6} ${waterBounds.left + 58} ${waterTopY - 1} C ${waterBounds.left + 80} ${waterTopY + 4} ${waterBounds.left + 98} ${waterTopY + 6} ${waterBounds.left + 118} ${waterTopY + 1} C ${waterBounds.left + 134} ${waterTopY - 2} ${waterBounds.left + 148} ${waterTopY - 4} ${waterBounds.right + 2} ${waterTopY};
+M ${waterBounds.left - 2} ${waterTopY} C ${waterBounds.left + 18} ${waterTopY - 4} ${waterBounds.left + 36} ${waterTopY - 4} ${waterBounds.left + 56} ${waterTopY} C ${waterBounds.left + 78} ${waterTopY + 4} ${waterBounds.left + 96} ${waterTopY + 4} ${waterBounds.left + 116} ${waterTopY} C ${waterBounds.left + 132} ${waterTopY - 3} ${waterBounds.left + 146} ${waterTopY - 3} ${waterBounds.right + 2} ${waterTopY}
+                `}
+              />
+            </path>
             <path
               d={`M ${waterBounds.left + 8} ${waterTopY + 8} C ${waterBounds.left + 28} ${waterTopY + 4} ${waterBounds.left + 46} ${waterTopY + 6} ${waterBounds.left + 66} ${waterTopY + 9} C ${waterBounds.left + 82} ${waterTopY + 12} ${waterBounds.left + 98} ${waterTopY + 12} ${waterBounds.left + 114} ${waterTopY + 8}`}
               fill="none"
               stroke="#ffffff"
-              strokeOpacity="0.18"
-              strokeWidth="1.4"
+              strokeOpacity="0.14"
+              strokeWidth="1.2"
             >
-              <animateTransform attributeName="transform" type="translate" values="-3 0; 4 0; -3 0" dur="7.4s" repeatCount="indefinite" />
+              <animateTransform attributeName="transform" type="translate" values="-6 0; 5 0; -6 0" dur="8.6s" repeatCount="indefinite" />
             </path>
           </g>
 

@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 100%;
   overflow: hidden;
-  padding: 1.25rem 1.1rem 1.1rem;
+  padding: 1.25rem 1.1rem 0.55rem;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
 }
 
@@ -23,7 +23,7 @@
 .water-level-top-shell {
   margin: -1.25rem -1.1rem 0;
   padding: 1.2rem 1.1rem 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   border-radius: 0 0 1.6rem 1.6rem;
   background: linear-gradient(to bottom, rgb(10, 48, 77) 0%, rgb(8, 38, 61) 50%, rgb(6, 26, 43) 100%);
   overflow: hidden;
@@ -333,9 +333,10 @@
 
 .canal-metric-label {
   color: rgb(100 116 139);
-  font-size: 0.67rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
   text-transform: uppercase;
 }
 
@@ -455,13 +456,13 @@
 
 @media (min-width: 768px) {
   .water-level-section {
-    padding: 1.45rem 1.25rem 1.2rem;
+    padding: 1.45rem 1.25rem 0.65rem;
   }
 
   .water-level-top-shell {
     margin: -1.45rem -1.25rem 0;
     padding: 1.35rem 1.25rem 1.05rem;
-    margin-bottom: 1.1rem;
+    margin-bottom: 0;
   }
 
   .water-level-summary-grid {
