@@ -394,7 +394,7 @@ function NodeSummaryCard({ nodeKey, title, node }) {
   const thresholdLevel = getCanalThresholdLevel(nodeKey, node);
   const delta = getCanalThresholdDelta(node, thresholdLevel);
   const deltaLabel = getCanalDeltaLabel(delta, getNodeUnit(node));
-  const deltaMetricLabel = delta !== null && delta < 0 ? "Below Threshold" : "Above Threshold";
+  const deltaMetricLabel = delta !== null && delta < 0 ? "Water Level Below Threshold" : "Water Level Above Threshold";
 
   return (
     <div className={`relative app-subcard bg-card text-card-foreground p-4 transition-all duration-300 flex flex-col min-h-[176px] group ${
