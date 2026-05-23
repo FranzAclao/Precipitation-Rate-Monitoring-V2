@@ -7,7 +7,7 @@ import AnalysisPage from "@/pages/analysis/analysis";
 import AlertsPage from "@/pages/alerts/alerts.jsx";
 import { 
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
-  RefreshCcw
+  RefreshCcw, CheckCircle2, AlertCircle, XCircle
 } from "lucide-react";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
@@ -191,8 +191,8 @@ export default function Dashboard() {
               <MetricCard
                 title="Overall Status"
                 value={getDisplayStatusName(sectionRisk)}
-                subtitle="Current canal risk status"
-                icon={<AlertTriangle className="w-5 h-5" />}
+                subtitle="Current canal status"
+                icon={getStatusIcon(sectionRisk)}
                 solidStatusLevel={sectionRisk}
               />
             </div>
@@ -201,7 +201,7 @@ export default function Dashboard() {
 
             <div id="sensor-telemetry" className="app-card mt-8 p-4 sm:p-6 relative overflow-hidden">
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
-                <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Sensor Telemetry</h3>
+                <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Rainfall Trends</h3>
                 
                 <div className="flex flex-wrap items-center gap-2">
                    {selectedDate !== todayStr && (
@@ -287,7 +287,7 @@ function WaterLevelSection({ node1, node2 }) {
           <div className="water-level-header">
             <div>
               <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
-              <p className="water-level-subtitle">Monitor the canal water level status.</p>
+              <p className="water-level-subtitle">i-monitor and kanal chuy kay basin taas ang tubig.</p>
               <div className="water-level-status-row">
               </div>
             </div>
@@ -753,4 +753,14 @@ function getOverallStatusMetricCardClass(level) {
     value: "text-white",
     subtitle: "text-slate-100",
   };
+}
+
+function getStatusIcon(tone) {
+  const normalized = String(tone || "").toUpperCase();
+  if (normalized === "OFFLINE") return <XCircle className="w-5 h-5" />;
+  if (normalized === "DANGER") return <AlertTriangle className="w-5 h-5" />;
+  if (normalized === "CAUTION") return <AlertCircle className="w-5 h-5" />;
+  if (normalized === "WATCH") return <AlertCircle className="w-5 h-5" />;
+  if (normalized === "SAFE") return <CheckCircle2 className="w-5 h-5" />;
+  return <Activity className="w-5 h-5" />;
 }
