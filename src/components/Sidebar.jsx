@@ -11,12 +11,12 @@ function NavItem({ icon, label, isActive, onClick, badge, collapsed }) {
       title={label}
         className={`group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[10px] font-bold transition-all duration-200 md:w-full md:flex-row md:justify-between md:gap-3 md:px-4 md:py-3 md:text-sm ${
         isActive
-          ? "border-white/20 text-white shadow-sm border bg-white/10"
-          : "border border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+          ? "border-[#7da9ca]/28 bg-white/10 text-white shadow-sm"
+          : "border border-transparent text-slate-300 hover:bg-white/6 hover:text-slate-100"
       }`}
     >
       <div className={`flex min-w-0 flex-col items-center gap-1 md:flex-row md:gap-3 ${collapsed ? "md:justify-center md:w-full" : ""}`}>
-        <span className={`transition-colors duration-200 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}>
+        <span className={`transition-colors duration-200 ${isActive ? "text-[#b7e2f2]" : "text-slate-400 group-hover:text-slate-100"}`}>
           {icon}
         </span>
         <span className={`max-w-full truncate ${collapsed ? "md:hidden" : ""}`}>{label}</span>
@@ -67,17 +67,17 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
       <button
         type="button"
         onClick={toggleCollapsed}
-        className="absolute top-4 right-[-1.05rem] z-20 hidden h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50 md:inline-flex"
+        className="absolute top-4 right-[-1.05rem] z-20 hidden h-11 w-11 items-center justify-center rounded-full border border-[#8ea7bf]/28 bg-[#102237] text-slate-200 shadow-lg transition hover:bg-[#16304d] md:inline-flex"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         <Menu size={18} />
       </button>
 
-      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] shadow-xl dark:border-white/5 md:rounded-[2rem]">
+      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#0a304d] via-[#08263d] to-[#061a2b] shadow-xl md:rounded-[2rem]">
         <div className={`hidden items-center ${collapsed ? "justify-center" : "justify-between"} gap-2 ${collapsed ? "p-4" : "p-6"} border-b border-white/10 md:flex`}>
           <div className="flex items-center gap-2">
             
-            <Monitor className="text-brand-teal w-10 h-10 shrink-0" />
+            <Monitor className="text-[#84d6ec] w-10 h-10 shrink-0" />
             {!collapsed && (
               <div>
                 <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">LAWOM</h1>

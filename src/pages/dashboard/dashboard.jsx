@@ -22,6 +22,7 @@ const LEVEL_META = {
     water: "from-emerald-200 via-emerald-300 to-emerald-400",
     surface: "#bbf7d0",
     marker: "bg-emerald-500",
+    darkPill: "border-emerald-500/30 bg-emerald-500/12 text-emerald-200",
   },
   WATCH: {
     pill: "border-yellow-200 bg-yellow-50 text-amber-700",
@@ -29,6 +30,7 @@ const LEVEL_META = {
     water: "from-yellow-200 via-yellow-300 to-amber-300",
     surface: "#fde68a",
     marker: "bg-amber-400",
+    darkPill: "border-amber-400/30 bg-amber-400/16 text-amber-100",
   },
   CAUTION: {
     pill: "border-orange-200 bg-orange-50 text-orange-700",
@@ -36,6 +38,7 @@ const LEVEL_META = {
     water: "from-orange-200 via-orange-300 to-orange-400",
     surface: "#fdba74",
     marker: "bg-orange-500",
+    darkPill: "border-orange-500/30 bg-orange-500/16 text-orange-100",
   },
   DANGER: {
     pill: "border-red-200 bg-red-50 text-red-700",
@@ -43,6 +46,7 @@ const LEVEL_META = {
     water: "from-red-200 via-red-300 to-red-400",
     surface: "#fca5a5",
     marker: "bg-red-500",
+    darkPill: "border-red-500/32 bg-red-500/18 text-red-100",
   },
   MONITORING: {
     pill: "border-slate-200 bg-slate-50 text-slate-700",
@@ -50,6 +54,7 @@ const LEVEL_META = {
     water: "from-sky-200 via-sky-300 to-sky-400",
     surface: "#bae6fd",
     marker: "bg-slate-400",
+    darkPill: "border-slate-500/28 bg-slate-500/14 text-slate-200",
   },
 };
 
@@ -314,13 +319,13 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
   return (
     <div className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
       solidStatusCard
-        ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)]`
+        ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_24px_rgba(2,8,23,0.22)]`
         : isOffline 
         ? darkTheme
-          ? 'opacity-90 text-slate-700'
+          ? 'opacity-90 text-slate-700 dark:text-slate-300'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
         : darkTheme
-          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
+          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.08)] hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
           : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
@@ -328,7 +333,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
         <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
           solidStatusCard
             ? solidStatusCard.eyebrow
-            : darkTheme ? 'text-slate-400 group-hover:text-slate-300' : 'text-muted-foreground'
+            : darkTheme ? 'text-slate-400 group-hover:text-slate-300 dark:text-slate-400 dark:group-hover:text-slate-200' : 'text-muted-foreground'
         }`}>
           {title}
         </h3>
@@ -338,10 +343,10 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
             ? solidStatusCard.icon
             : isOffline 
             ? darkTheme
-              ? 'bg-slate-100 text-slate-500'
+              ? 'bg-slate-100 text-slate-500 dark:bg-white/8 dark:text-slate-400'
               : 'bg-muted text-muted-foreground'
             : darkTheme
-              ? 'bg-slate-100 text-slate-700'
+              ? 'bg-slate-100 text-slate-700 dark:bg-white/8 dark:text-slate-200'
               : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
@@ -353,7 +358,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
           solidStatusCard
             ? solidStatusCard.value
             : isOffline
-            ? darkTheme ? 'text-slate-600' : 'text-muted-foreground'
+            ? darkTheme ? 'text-slate-600 dark:text-slate-300' : 'text-muted-foreground'
             : 'text-foreground'
         }`}>
           {value}
@@ -368,7 +373,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
             <p className={`text-[10px] font-bold uppercase tracking-wider ${
               solidStatusCard
                 ? solidStatusCard.subtitle
-                : darkTheme ? 'text-slate-500 group-hover:text-slate-600' : 'text-muted-foreground'
+                : darkTheme ? 'text-slate-500 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300' : 'text-muted-foreground'
             }`}>
               {subtitle}
             </p>
@@ -435,9 +440,9 @@ function FloodRiskStack({ activeLevel, maxLevel }) {
       key: "SAFE",
       label: "Safe",
       description: "Normal water level",
-      tint: "bg-[#9edcff] border-[#68b9e8]",
+      tint: "bg-[#9edcff] border-[#68b9e8] dark:bg-[#173c57] dark:border-[#2f6288]",
       text: "text-slate-950",
-      subtext: "text-slate-800",
+      subtext: "text-slate-800 dark:text-sky-100/88",
       current: "text-sky-700",
       icon: Check,
     },
@@ -445,9 +450,9 @@ function FloodRiskStack({ activeLevel, maxLevel }) {
       key: "WATCH",
       label: "Watch",
       description: "Monitor closely",
-      tint: "bg-[#ffd54a] border-[#e0b93c]",
+      tint: "bg-[#ffd54a] border-[#e0b93c] dark:bg-[#584b16] dark:border-[#8a7425]",
       text: "text-slate-950",
-      subtext: "text-slate-800",
+      subtext: "text-slate-800 dark:text-amber-100/88",
       current: "text-amber-700",
       icon: Eye,
     },
@@ -455,7 +460,7 @@ function FloodRiskStack({ activeLevel, maxLevel }) {
       key: "CAUTION",
       label: "Caution",
       description: "Elevated level",
-      tint: "bg-[#f59b00] border-[#d98200]",
+      tint: "bg-[#f59b00] border-[#d98200] dark:bg-[#5d3210] dark:border-[#8b4e19]",
       text: "text-white",
       subtext: "text-white/90",
       current: "text-orange-700",
@@ -465,7 +470,7 @@ function FloodRiskStack({ activeLevel, maxLevel }) {
       key: "DANGER",
       label: "Flood Risk",
       description: "Possible overflow",
-      tint: "bg-[#eb3434] border-[#c62828]",
+      tint: "bg-[#eb3434] border-[#c62828] dark:bg-[#5c1f28] dark:border-[#8f3445]",
       text: "text-white",
       subtext: "text-white/90",
       current: "text-red-700",
@@ -714,37 +719,37 @@ function getStatusDescription(status) {
 function getOverallStatusMetricCardClass(level) {
   const normalized = normalizeLevelLabel(level);
   if (normalized === "DANGER") return {
-    card: "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)]",
+    card: "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)] dark:border-red-500/40 dark:bg-red-500/18 dark:text-red-50",
     eyebrow: "text-red-100",
-    icon: "bg-white/15 text-white",
+    icon: "bg-white/15 text-white dark:bg-red-500/18 dark:text-red-100",
     value: "text-white",
     subtitle: "text-red-100",
   };
   if (normalized === "CAUTION") return {
-    card: "border-orange-500 bg-orange-500 text-white shadow-[0_10px_24px_rgba(234,88,12,0.24)]",
+    card: "border-orange-500 bg-orange-500 text-white shadow-[0_10px_24px_rgba(234,88,12,0.24)] dark:border-orange-500/40 dark:bg-orange-500/16 dark:text-orange-50",
     eyebrow: "text-orange-100",
-    icon: "bg-white/15 text-white",
+    icon: "bg-white/15 text-white dark:bg-orange-500/18 dark:text-orange-100",
     value: "text-white",
     subtitle: "text-orange-100",
   };
   if (normalized === "WATCH") return {
-    card: "border-yellow-400 bg-yellow-400 text-slate-950 shadow-[0_10px_24px_rgba(250,204,21,0.22)]",
-    eyebrow: "text-slate-700",
-    icon: "bg-white/35 text-slate-950",
-    value: "text-slate-950",
-    subtitle: "text-slate-700",
+    card: "border-yellow-400 bg-yellow-400 text-slate-950 shadow-[0_10px_24px_rgba(250,204,21,0.22)] dark:border-amber-400/34 dark:bg-amber-400/18 dark:text-amber-50",
+    eyebrow: "text-slate-700 dark:text-amber-100",
+    icon: "bg-white/35 text-slate-950 dark:bg-amber-400/18 dark:text-amber-100",
+    value: "text-slate-950 dark:text-amber-50",
+    subtitle: "text-slate-700 dark:text-amber-100",
   };
   if (normalized === "SAFE") return {
-    card: "border-sky-500 bg-sky-500 text-white shadow-[0_10px_24px_rgba(14,165,233,0.22)]",
+    card: "border-sky-500 bg-sky-500 text-white shadow-[0_10px_24px_rgba(14,165,233,0.22)] dark:border-sky-500/34 dark:bg-sky-500/16 dark:text-sky-50",
     eyebrow: "text-sky-100",
-    icon: "bg-white/15 text-white",
+    icon: "bg-white/15 text-white dark:bg-sky-500/18 dark:text-sky-100",
     value: "text-white",
     subtitle: "text-sky-100",
   };
   return {
-    card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)]",
+    card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)] dark:border-slate-500/28 dark:bg-slate-500/14 dark:text-slate-50",
     eyebrow: "text-slate-100",
-    icon: "bg-white/15 text-white",
+    icon: "bg-white/15 text-white dark:bg-white/8 dark:text-slate-100",
     value: "text-white",
     subtitle: "text-slate-100",
   };

@@ -82,7 +82,7 @@ export default function OverviewPage() {
     return {
       tone,
       label: anyOffline ? "Attention needed" : getDisplayStatusName(top),
-      subtitle: anyOffline ? "One or more nodes are offline" : "Current canal risk status",
+      subtitle: anyOffline ? "One or more nodes are offline" : "Current canal status",
     };
   }, [node1, node2]);
 
