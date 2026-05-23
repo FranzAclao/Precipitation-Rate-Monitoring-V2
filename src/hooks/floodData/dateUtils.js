@@ -34,7 +34,6 @@ export function toCandidateDates(value) {
   if (localLikeMatch) {
     const [, year, month, day, hour, minute, second = "00"] = localLikeMatch;
     pushDate(new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)));
-    pushDate(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second))));
   }
 
   return candidates;
