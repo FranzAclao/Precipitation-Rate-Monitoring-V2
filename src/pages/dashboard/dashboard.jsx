@@ -498,7 +498,7 @@ function WaterLevelGuideHelp({ activeLevel }) {
       description: "Possible overflow",
       tone: "danger",
       icon: AlertTriangle,
-      threshold: "Node 1 >= 50 cm | Node 2 >= 55 cm",
+      thresholdLines: ["Node 1 ≥ 50 cm", "Node 2 ≥ 55 cm"],
     },
   ];
 
@@ -508,7 +508,8 @@ function WaterLevelGuideHelp({ activeLevel }) {
         <CircleHelp className="h-4 w-4" />
       </button>
       <div className="water-level-help-popover">
-        <p className="water-level-help-title">Water level status guide</p>
+        <p className="water-level-help-title">Water Level Status Guide</p>
+        <p className="water-level-help-subtitle">Thresholds used to classify canal water level.</p>
         <div className="water-level-help-list">
         {levels.map((level) => {
           const isActive = normalizeLevelLabel(activeLevel) === level.key;
@@ -519,14 +520,27 @@ function WaterLevelGuideHelp({ activeLevel }) {
               className={`water-level-help-item tone-${level.tone} ${isActive ? "is-active" : ""}`}
             >
               <div className="water-level-help-copy">
-                <div className="water-level-help-top">
-                  <span className="water-level-help-icon">
-                    <Icon className="h-3.5 w-3.5" />
-                  </span>
-                  <p className="water-level-help-label">{level.label}</p>
+                <div className="water-level-help-head">
+                  <div className="water-level-help-top">
+                    <span className="water-level-help-icon">
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <p className="water-level-help-label">{level.label}</p>
+                  </div>
+                  {isActive && <span className="water-level-help-current">Current</span>}
                 </div>
-                <p className="water-level-help-threshold">{level.threshold}</p>
-                <p className="water-level-help-description">{level.description}</p>
+                <div className="water-level-help-body">
+                  {level.thresholdLines ? (
+                    <div className="water-level-help-threshold-stack">
+                      {level.thresholdLines.map((line) => (
+                        <p key={line} className="water-level-help-threshold">{line}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="water-level-help-threshold">{level.threshold}</p>
+                  )}
+                  <p className="water-level-help-description">{level.description}</p>
+                </div>
               </div>
             </div>
           );
