@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
-import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle } from "lucide-react";
+import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity } from "lucide-react";
 
 export default function OverviewPage() {
   const { rain, system, node1, node2, nodes, allLogs, lastUpdate, loading } = useFloodData();
@@ -121,7 +121,7 @@ export default function OverviewPage() {
                   className="rounded-2xl border px-4 py-4 text-center text-sm font-bold text-white shadow-sm transition hover:opacity-95"
                   style={{ borderColor: "rgb(24, 76, 128)", background: "rgb(24, 76, 128)" }}
                 >
-                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-200">View Sensor Telemetry</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-200">View Rainfall Trends</div>
                   <div className="mt-2 text-base font-black text-white">Go To Monitoring Dashboard</div>
                 </button>
                 <div className={`app-subcard px-4 py-3 ${getOverviewStatusCardClass(overallStatus.tone)}`}>
@@ -132,7 +132,7 @@ export default function OverviewPage() {
                       <p className="mt-1 text-sm font-medium">{overallStatus.subtitle}</p>
                     </div>
                     <div className="rounded-xl bg-white/15 p-2">
-                      <AlertTriangle className="h-4 w-4" />
+                      {getStatusIcon(overallStatus.tone)}
                     </div>
                   </div>
                 </div>
@@ -297,4 +297,14 @@ function getOverviewStatusCardClass(tone) {
   if (normalized === "WATCH") return "border-yellow-300 bg-yellow-300 text-slate-950";
   if (normalized === "SAFE") return "border-sky-400 bg-sky-500 text-white";
   return "border-slate-300 bg-white text-foreground";
+}
+
+function getStatusIcon(tone) {
+  const normalized = String(tone || "").toUpperCase();
+  if (normalized === "OFFLINE") return <XCircle className="h-4 w-4" />;
+  if (normalized === "DANGER") return <AlertTriangle className="h-4 w-4" />;
+  if (normalized === "CAUTION") return <AlertCircle className="h-4 w-4" />;
+  if (normalized === "WATCH") return <AlertCircle className="h-4 w-4" />;
+  if (normalized === "SAFE") return <CheckCircle2 className="h-4 w-4" />;
+  return <Activity className="h-4 w-4" />;
 }

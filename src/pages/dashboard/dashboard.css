@@ -25,7 +25,7 @@
   padding: 1.2rem 1.1rem 1rem;
   margin-bottom: 1rem;
   border-radius: 0 0 1.6rem 1.6rem;
-  background: linear-gradient(180deg, rgb(24, 76, 128) 0%, rgb(33, 91, 149) 100%);
+  background: linear-gradient(to bottom, rgb(10, 48, 77) 0%, rgb(8, 38, 61) 50%, rgb(6, 26, 43) 100%);
   overflow: hidden;
 }
 
