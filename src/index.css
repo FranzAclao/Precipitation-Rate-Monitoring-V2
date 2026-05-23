@@ -194,6 +194,22 @@
     box-shadow: 0 14px 28px rgba(2, 8, 23, 0.2);
   }
 
+  .overview-link-card {
+    cursor: pointer;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .overview-link-card:hover,
+  .overview-link-card:focus-visible {
+    border-color: rgba(24, 76, 128, 0.32);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  .overview-link-card:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.16);
+    outline-offset: 3px;
+  }
+
   .app-shell {
     @apply min-h-screen text-foreground font-sans md:h-screen md:overflow-hidden md:p-3;
     background: linear-gradient(180deg, #0a304d 0%, #08263d 48%, #061a2b 100%);

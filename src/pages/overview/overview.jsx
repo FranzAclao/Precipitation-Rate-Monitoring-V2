@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
-import { MapPin, Database, Bell, CloudRain, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, WifiOff, RefreshCcw } from "lucide-react";
+import { CloudRain, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, WifiOff, RefreshCcw } from "lucide-react";
 
 export default function OverviewPage() {
   const { rain, system, node1, node2, nodes, allLogs, lastUpdate, loading } = useFloodData();
@@ -147,13 +147,23 @@ export default function OverviewPage() {
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-              <section className="app-card">
+              <section
+                className="app-card overview-link-card"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate("/locations")}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate("/locations");
+                  }
+                }}
+              >
                 <div className="app-section-header">
                   <div>
                     <p className="app-eyebrow">Location Site</p>
                     <h3 className="app-section-title">Node deployment overview</h3>
                   </div>
-                  <PreviewLink icon={<MapPin size={14} />} label="View locations" onClick={() => navigate("/locations")} />
                 </div>
                 <div className="rounded-3xl overflow-hidden border border-slate-300 shadow-sm">
                   <NodeMap nodes={locationPreviewNodes} heightClass="h-[260px]" />
@@ -164,9 +174,7 @@ export default function OverviewPage() {
                 <PreviewPanel
                   eyebrow="Alerts"
                   title="Active system alerts"
-                  actionLabel="View alerts"
-                  actionIcon={<Bell size={14} />}
-                  onAction={() => navigate("/alerts")}
+                  onClick={() => navigate("/alerts")}
                 >
                   <div className="space-y-3">
                     {alertPreviewItems.map((item, index) => (
@@ -178,9 +186,7 @@ export default function OverviewPage() {
                 <PreviewPanel
                   eyebrow="Data Logs"
                   title="Recent telemetry records"
-                  actionLabel="View logs"
-                  actionIcon={<Database size={14} />}
-                  onAction={() => navigate("/data")}
+                  onClick={() => navigate("/data")}
                 >
                   <div className="space-y-3">
                     {recentLogsPreview.length === 0 ? (
@@ -208,31 +214,28 @@ export default function OverviewPage() {
   );
 }
 
-function PreviewPanel({ eyebrow, title, actionLabel, actionIcon, onAction, children }) {
+function PreviewPanel({ eyebrow, title, onClick, children }) {
   return (
-    <section className="app-card">
+    <section
+      className="app-card overview-link-card"
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <div className="app-section-header">
         <div>
           <p className="app-eyebrow">{eyebrow}</p>
           <h3 className="app-section-title">{title}</h3>
         </div>
-        <PreviewLink icon={actionIcon} label={actionLabel} onClick={onAction} />
       </div>
       {children}
     </section>
-  );
-}
-
-function PreviewLink({ icon, label, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="app-action-button"
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 
