@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
-import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity } from "lucide-react";
+import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle, CheckCircle2, AlertCircle, XCircle, Activity, Monitor } from "lucide-react";
 
 export default function OverviewPage() {
   const { rain, system, node1, node2, nodes, allLogs, lastUpdate, loading } = useFloodData();
@@ -104,7 +104,7 @@ export default function OverviewPage() {
                   <h3 className="app-section-title">Dashboard metrics overview</h3>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <PreviewLink icon={<Clock size={14} />} label="View Monitoring" onClick={() => navigate("/dashboard")} />
+                  <PreviewLink icon={<Monitor size={14} />} label="View Monitoring" onClick={() => navigate("/dashboard")} />
                 </div>
               </div>
 
