@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, LayoutDashboard, Activity, Map as MapIcon, Database, Brain, Bell, Menu } from "lucide-react";
+import { Monitor, LayoutDashboard, Activity, Map as MapIcon, Database, Brain, Bell, Menu } from "lucide-react";
 
 const SIDEBAR_COLLAPSED_KEY = "lawom.sidebar.collapsed";
 
@@ -76,12 +76,13 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
       <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] shadow-xl dark:border-white/5 md:rounded-[2rem]">
         <div className={`hidden items-center ${collapsed ? "justify-center" : "justify-between"} gap-2 ${collapsed ? "p-4" : "p-6"} border-b border-white/10 md:flex`}>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="text-brand-teal w-6 h-6 shrink-0" />
+            
+            <Monitor className="text-brand-teal w-10 h-10 shrink-0" />
             {!collapsed && (
               <div>
                 <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">LAWOM</h1>
                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.1em] mt-2">
-                  Network: <span className="text-emerald-400">Online</span>
+                  Real-time Rainfall Monitoring
                 </p>
               </div>
             )}
