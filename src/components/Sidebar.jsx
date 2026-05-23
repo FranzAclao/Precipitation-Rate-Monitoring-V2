@@ -76,8 +76,6 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
       <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#0a304d] via-[#08263d] to-[#061a2b] shadow-xl md:rounded-[2rem]">
         <div className={`hidden items-center ${collapsed ? "justify-center" : "justify-between"} gap-2 ${collapsed ? "p-4" : "p-6"} border-b border-white/10 md:flex`}>
           <div className="flex items-center gap-2">
-            
-            <Monitor className="text-[#84d6ec] w-10 h-10 shrink-0" />
             {!collapsed && (
               <div>
                 <h1 className="text-2xl font-black text-white tracking-tight whitespace-nowrap">LAWOM</h1>

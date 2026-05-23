@@ -170,6 +170,8 @@ export default function Dashboard() {
                 subtitle={rain.status === "offline" ? "Offline sensor state" : `${rain.rate}`}
                 icon={<CloudRain className="w-5 h-5" />}
                 darkTheme
+                showRainfallAnimation
+                rainfallIntensity={rain.intensity}
               />
               <MetricCard
                 title="Accumulated Rainfall"
@@ -312,22 +314,28 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, solidStatusLevel = null }) {
+function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, solidStatusLevel = null, showRainfallAnimation = false, rainfallIntensity = null }) {
+  const [isHovered, setIsHovered] = useState(false);
   const isOffline = status === 'offline';
   const solidStatusCard = solidStatusLevel ? getOverallStatusMetricCardClass(solidStatusLevel) : null;
   
   return (
-    <div className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
-      solidStatusCard
-        ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_24px_rgba(2,8,23,0.22)]`
-        : isOffline 
-        ? darkTheme
-          ? 'opacity-90 text-slate-700 dark:text-slate-300'
-          : 'opacity-80 bg-muted/60 border-border text-card-foreground'
-        : darkTheme
-          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.08)] hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
-          : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
-    }`}>
+    <div 
+      className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group overflow-hidden ${
+        solidStatusCard
+          ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_24px_rgba(2,8,23,0.22)]`
+          : isOffline 
+          ? darkTheme
+            ? 'opacity-90 text-slate-700 dark:text-slate-300'
+            : 'opacity-80 bg-muted/60 border-border text-card-foreground'
+          : darkTheme
+            ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.08)] hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
+            : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {showRainfallAnimation && <RainfallAnimation isActive={isHovered} intensity={rainfallIntensity} />}
       
       <div className="flex justify-between items-start mb-4">
         <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
@@ -763,4 +771,38 @@ function getStatusIcon(tone) {
   if (normalized === "WATCH") return <AlertCircle className="w-5 h-5" />;
   if (normalized === "SAFE") return <CheckCircle2 className="w-5 h-5" />;
   return <Activity className="w-5 h-5" />;
+}
+
+function RainfallAnimation({ isActive, intensity }) {
+  // Determine drop count and intensity class based on rain level
+  let dropCount = 5;
+  let intensityClass = 'light';
+
+  const normalizedIntensity = String(intensity || 'LIGHT').toUpperCase();
+  
+  if (normalizedIntensity === 'VIOLENT') {
+    dropCount = 24;
+    intensityClass = 'violent';
+  } else if (normalizedIntensity === 'HEAVY') {
+    dropCount = 12;
+    intensityClass = 'heavy';
+  } else if (normalizedIntensity === 'MODERATE') {
+    dropCount = 8;
+    intensityClass = 'moderate';
+  } else if (normalizedIntensity === 'LIGHT') {
+    dropCount = 5;
+    intensityClass = 'light';
+  }
+
+  const drops = Array.from({ length: dropCount });
+
+  return (
+    <div className={`rainfall-animation`}>
+      <div className={`rainfall-drops ${isActive ? 'active' : ''}`}>
+        {drops.map((_, index) => (
+          <div key={index} className={`rain-drop ${intensityClass}`} />
+        ))}
+      </div>
+    </div>
+  );
 }
