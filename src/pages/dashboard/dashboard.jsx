@@ -101,6 +101,7 @@ export default function Dashboard() {
     if (!allLogs || allLogs.length === 0) return [];
     return allLogs.filter(log => log.fullDate === selectedDate);
   }, [selectedDate, allLogs]);
+  const sectionRisk = useMemo(() => getSectionRisk(node1, node2), [node1, node2]);
 
   const telemetryMetrics = useMemo(() => {
     const detailMap = new Map((system?.details || []).map((item) => [String(item.nodeKey || "").toLowerCase(), item]));
@@ -157,7 +158,7 @@ export default function Dashboard() {
               <p className="app-page-copy">Real-time metrics and historical rainfall data.</p>
             </header>
 
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-5 gap-4">
               <MetricCard
                 title="Rain Intensity"
                 value={rain.intensity}
@@ -182,6 +183,13 @@ export default function Dashboard() {
                   darkTheme
                 />
               ))}
+              <MetricCard
+                title="Overall Status"
+                value={getDisplayStatusName(sectionRisk)}
+                subtitle="Current canal risk status"
+                icon={<AlertTriangle className="w-5 h-5" />}
+                solidStatusLevel={sectionRisk}
+              />
             </div>
 
             <WaterLevelSection node1={node1} node2={node2} lastUpdate={lastUpdate} />
@@ -277,10 +285,6 @@ function WaterLevelSection({ node1, node2 }) {
               <p className="water-level-subtitle">Monitor the canal water level status.</p>
               <div className="water-level-status-row">
               </div>
-            </div> 
-            <div className={`water-level-status-badge ${getOverallStatusBadgeClass(sectionRisk)}`}>
-                  <AlertTriangle className="h-4 w-4" />
-                  Overall Status: {getDisplayStatusName(sectionRisk)}
             </div>
           </div>
           <div className="water-level-summary-grid">
@@ -303,12 +307,15 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status, darkTheme = false }) {
+function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, solidStatusLevel = null }) {
   const isOffline = status === 'offline';
+  const solidStatusCard = solidStatusLevel ? getOverallStatusMetricCardClass(solidStatusLevel) : null;
   
   return (
     <div className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group ${
-      isOffline 
+      solidStatusCard
+        ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)]`
+        : isOffline 
         ? darkTheme
           ? 'opacity-90 text-slate-700'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
@@ -318,12 +325,18 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
     }`}>
       
       <div className="flex justify-between items-start mb-4">
-        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${darkTheme ? 'text-slate-400 group-hover:text-slate-300' : 'text-muted-foreground'}`}>
+        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
+          solidStatusCard
+            ? solidStatusCard.eyebrow
+            : darkTheme ? 'text-slate-400 group-hover:text-slate-300' : 'text-muted-foreground'
+        }`}>
           {title}
         </h3>
         
         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
-          isOffline 
+          solidStatusCard
+            ? solidStatusCard.icon
+            : isOffline 
             ? darkTheme
               ? 'bg-slate-100 text-slate-500'
               : 'bg-muted text-muted-foreground'
@@ -337,7 +350,9 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
       
       <div>
         <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
-          isOffline
+          solidStatusCard
+            ? solidStatusCard.value
+            : isOffline
             ? darkTheme ? 'text-slate-600' : 'text-muted-foreground'
             : 'text-foreground'
         }`}>
@@ -350,7 +365,11 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-600' : 'text-muted-foreground'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${
+              solidStatusCard
+                ? solidStatusCard.subtitle
+                : darkTheme ? 'text-slate-500 group-hover:text-slate-600' : 'text-muted-foreground'
+            }`}>
               {subtitle}
             </p>
           )}
@@ -692,11 +711,41 @@ function getStatusDescription(status) {
   return "Awaiting telemetry from this monitoring node.";
 }
 
-function getOverallStatusBadgeClass(level) {
+function getOverallStatusMetricCardClass(level) {
   const normalized = normalizeLevelLabel(level);
-  if (normalized === "DANGER") return "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)]";
-  if (normalized === "CAUTION") return "border-orange-500 bg-orange-500 text-white";
-  if (normalized === "WATCH") return "border-yellow-400 bg-yellow-400 text-slate-950";
-  if (normalized === "SAFE") return "border-sky-500 bg-sky-500 text-white";
-  return "border-white/22 bg-white/14 text-white";
+  if (normalized === "DANGER") return {
+    card: "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)]",
+    eyebrow: "text-red-100",
+    icon: "bg-white/15 text-white",
+    value: "text-white",
+    subtitle: "text-red-100",
+  };
+  if (normalized === "CAUTION") return {
+    card: "border-orange-500 bg-orange-500 text-white shadow-[0_10px_24px_rgba(234,88,12,0.24)]",
+    eyebrow: "text-orange-100",
+    icon: "bg-white/15 text-white",
+    value: "text-white",
+    subtitle: "text-orange-100",
+  };
+  if (normalized === "WATCH") return {
+    card: "border-yellow-400 bg-yellow-400 text-slate-950 shadow-[0_10px_24px_rgba(250,204,21,0.22)]",
+    eyebrow: "text-slate-700",
+    icon: "bg-white/35 text-slate-950",
+    value: "text-slate-950",
+    subtitle: "text-slate-700",
+  };
+  if (normalized === "SAFE") return {
+    card: "border-sky-500 bg-sky-500 text-white shadow-[0_10px_24px_rgba(14,165,233,0.22)]",
+    eyebrow: "text-sky-100",
+    icon: "bg-white/15 text-white",
+    value: "text-white",
+    subtitle: "text-sky-100",
+  };
+  return {
+    card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)]",
+    eyebrow: "text-slate-100",
+    icon: "bg-white/15 text-white",
+    value: "text-white",
+    subtitle: "text-slate-100",
+  };
 }
