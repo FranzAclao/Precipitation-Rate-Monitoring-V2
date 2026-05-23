@@ -9,7 +9,7 @@ const DEFAULT_NODE_DEPTHS_CM = {
 const ALLOWED_NODE_PATHS = ["Node1", "Node2"];
 
 const DEFAULT_STATE = {
-  rain: { intensity: "--", rate: 0, total1h: 0, status: "loading", source: "Detecting..." },
+  rain: { intensity: "--", rate: "0 mm/hr", total1h: "0 mm", status: "loading", source: "Detecting..." },
   system: { mode: "LIVE", label: "Detecting...", subtitle: "Waiting for telemetry", sendReason: null, timestamp: null, details: [] },
   node1: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
   node2: { level: 0, label: "SAFE", status: "loading", lat: 0, lng: 0, timestamp: null, maxLevel: null, fillRatio: 0 },
@@ -49,19 +49,59 @@ function getSendReason(entry) {
   return entry?.send_reason || entry?.sendReason || null;
 }
 
+function parseDateInput(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  return String(value).trim();
+}
+
+function toCandidateDates(value) {
+  const input = parseDateInput(value);
+  if (!input) return [];
+  if (input instanceof Date) return [input];
+
+  const candidates = [];
+  const pushDate = (dateValue) => {
+    if (!(dateValue instanceof Date) || Number.isNaN(dateValue.getTime())) return;
+    if (!candidates.some((candidate) => candidate.getTime() === dateValue.getTime())) {
+      candidates.push(dateValue);
+    }
+  };
+
+  pushDate(new Date(input));
+
+  const normalized = input.replace(" ", "T");
+  pushDate(new Date(normalized));
+
+  const localLikeMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (localLikeMatch) {
+    const [, year, month, day, hour, minute, second = "00"] = localLikeMatch;
+    pushDate(new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)));
+    pushDate(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second))));
+  }
+
+  return candidates;
+}
+
 function toDate(value) {
-  if (!value) return null;
-  const parsed = new Date(String(value).replace(" ", "T"));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return toCandidateDates(value)[0] || null;
 }
 
 function isTimestampFresh(timestamp) {
-  const sensorTime = toDate(timestamp);
-  if (!sensorTime) return false;
+  const sensorTimes = toCandidateDates(timestamp);
+  if (sensorTimes.length === 0) return false;
 
-  const diffMinutes = (Date.now() - sensorTime.getTime()) / (1000 * 60);
-  if (diffMinutes < -MAX_FUTURE_SKEW_MINUTES) return false;
-  return diffMinutes <= OFFLINE_AFTER_MINUTES;
+  return sensorTimes.some((sensorTime) => {
+    const diffMinutes = (Date.now() - sensorTime.getTime()) / (1000 * 60);
+    if (diffMinutes < -MAX_FUTURE_SKEW_MINUTES) return false;
+    return diffMinutes <= OFFLINE_AFTER_MINUTES;
+  });
 }
 
 function checkOffline(timestamp) {
@@ -196,7 +236,7 @@ function getLatestEntry(value) {
 
 function createNodeSummary(nodeKey, latestEntry) {
   const timestamp = getTimestamp(latestEntry);
-  const offline = checkOffline(timestamp);
+  const offline = !latestEntry;
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
   const fillRatio = maxLevel ? Math.min(level / maxLevel, 1) : 0;
@@ -220,7 +260,7 @@ function createNodeSummary(nodeKey, latestEntry) {
 
 function createPrimaryNodeState(nodeKey, latestEntry) {
   const timestamp = getTimestamp(latestEntry);
-  const offline = checkOffline(timestamp);
+  const offline = !latestEntry;
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
 
@@ -241,18 +281,58 @@ function buildHistory(logs) {
 }
 
 function createRainState(rainSourceKey, latestByKey) {
-  const rainNode = rainSourceKey ? latestByKey[rainSourceKey] : null;
-  const rainRate = getRainRateValue(rainNode);
-  const rainfall = getRainfallValue(rainNode);
-  const sourceStatus = rainSourceKey
-    ? (checkOffline(getTimestamp(rainNode)) ? `${rainSourceKey} Offline` : `${rainSourceKey} Active`)
-    : "Detecting...";
+  const preferredKeys = [
+    rainSourceKey,
+    ...Object.keys(latestByKey).filter((key) => key !== rainSourceKey),
+  ].filter(Boolean);
+
+  const candidates = preferredKeys
+    .map((nodeKey) => {
+      const entry = latestByKey[nodeKey];
+      if (!entry) return null;
+
+      const timestamp = getTimestamp(entry);
+      return {
+        nodeKey,
+        entry,
+        offline: false,
+        rainRate: getRainRateValue(entry),
+        rainfall: getRainfallValue(entry),
+        isRaining: getRainingValue(entry),
+      };
+    })
+    .filter(Boolean);
+
+  const onlineCandidates = candidates.filter((item) => !item.offline);
+  const activeCandidate = onlineCandidates.find((item) => item.isRaining || item.rainRate > 0);
+  const primaryOnlineCandidate = activeCandidate || onlineCandidates[0];
+
+  if (!primaryOnlineCandidate) {
+    return {
+      intensity: "Offline",
+      rate: "No Data",
+      total1h: "No Data",
+      status: "offline",
+      source: candidates.length > 0 ? "All nodes offline" : "Waiting for telemetry",
+    };
+  }
+
+  if (!activeCandidate) {
+    return {
+      intensity: "No Rain",
+      rate: "0 mm/hr",
+      total1h: "0 mm",
+      status: "inactive",
+      source: `${primaryOnlineCandidate.nodeKey} Online`,
+    };
+  }
 
   return {
-    intensity: getRainIntensity(rainRate),
-    rate: `${rainRate.toFixed(1)} mm/hr`,
-    total1h: `${rainfall.toFixed(1)}mm`,
-    source: sourceStatus,
+    intensity: getRainIntensity(activeCandidate.rainRate),
+    rate: `${activeCandidate.rainRate.toFixed(1)} mm/hr`,
+    total1h: `${activeCandidate.rainfall.toFixed(1)} mm`,
+    status: "active",
+    source: `${activeCandidate.nodeKey} Active`,
   };
 }
 
@@ -276,7 +356,7 @@ function createSystemState(systemNodeKeys, latestByKey) {
         entry,
         timestamp,
         sendReason,
-        offline: checkOffline(timestamp),
+        offline: false,
       };
     })
     .filter((item) => item.entry);

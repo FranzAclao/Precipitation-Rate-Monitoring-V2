@@ -1,8 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
-import { Header } from "@/components/Header.jsx";
-import { Sidebar } from "@/components/Sidebar.jsx";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
 import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle } from "lucide-react";
@@ -25,7 +23,7 @@ export default function OverviewPage() {
 
     if (node1?.status === "offline") items.push({ tone: "critical", text: "Node 1 is offline. Check battery or cellular signal." });
     if (node2?.status === "offline") items.push({ tone: "warning", text: "Node 2 heartbeat is stale. Inspect connectivity." });
-    if (rain?.intensity && rain.intensity !== "NO RAIN") items.push({ tone: "normal", text: `Rainfall status is ${rain.intensity.toLowerCase()}. Continue monitoring live telemetry.` });
+    if (rain?.status === "active") items.push({ tone: "normal", text: `Rainfall status is ${rain.intensity.toLowerCase()}. Continue monitoring live telemetry.` });
     if (items.length === 0) items.push({ tone: "normal", text: "All sensor nodes are online and reporting normally." });
 
     return items.slice(0, 3);
@@ -58,8 +56,18 @@ export default function OverviewPage() {
     };
 
     return [
-      { title: "Rain Intensity", value: rain?.intensity || "--", subtitle: rain?.rate || "Detecting...", icon: <CloudRain className="w-5 h-5" /> },
-      { title: "Accumulated Rainfall", value: rain?.total1h || "--", subtitle: "In total", icon: <Droplets className="w-5 h-5" /> },
+      {
+        title: "Rain Intensity",
+        value: rain?.intensity || "--",
+        subtitle: rain?.status === "offline" ? "Offline sensor state" : rain?.rate || "Detecting...",
+        icon: <CloudRain className="w-5 h-5" />,
+      },
+      {
+        title: "Accumulated Rainfall",
+        value: rain?.total1h || "--",
+        subtitle: rain?.status === "active" ? "Current rainfall event" : rain?.status === "offline" ? "Offline sensor state" : "No active rainfall",
+        icon: <Droplets className="w-5 h-5" />,
+      },
       { ...buildMetric("node1", "Node 1 Status"), icon: <Clock className="w-5 h-5" /> },
       { ...buildMetric("node2", "Node 2 Status"), icon: <Clock className="w-5 h-5" /> },
     ];
@@ -77,27 +85,11 @@ export default function OverviewPage() {
   }, [node1, node2]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-        <Sidebar activeView="overview" node1={node1} node2={node2} lastUpdate={lastUpdate} />
-        <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-          <Header title="Overview" />
-        <div className="app-page-container">
-          <AppLoader label="Loading Overview..." />
-        </div>
-        </main>
-      </div>
-    );
+    return <AppLoader label="Loading Overview..." />;
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-      <Sidebar activeView="overview" node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-        <Header title="Overview" />
-
-        <div className="app-page-container">
+    <div className="app-page-container">
           <div className="app-page-stack">
             <header className="app-page-header">
               <p className="app-page-copy">System overview with node locations, recent telemetry, and active alerts.</p>
@@ -110,7 +102,7 @@ export default function OverviewPage() {
                   <h3 className="app-section-title">Dashboard metrics overview</h3>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <PreviewLink icon={<Clock size={14} />} label="Open Monitoring" onClick={() => navigate("/dashboard")} />
+                  <PreviewLink icon={<Clock size={14} />} label="View Monitoring" onClick={() => navigate("/dashboard")} />
                 </div>
               </div>
 
@@ -124,9 +116,10 @@ export default function OverviewPage() {
                 <button
                   type="button"
                   onClick={() => navigate("/dashboard#sensor-telemetry")}
-                  className="rounded-2xl border border-[#003a5a] bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] px-4 py-4 text-center text-sm font-bold text-white shadow-md transition hover:brightness-110"
+                  className="rounded-2xl border px-4 py-4 text-center text-sm font-bold text-white shadow-sm transition hover:opacity-95"
+                  style={{ borderColor: "rgb(24, 76, 128)", background: "rgb(24, 76, 128)" }}
                 >
-                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-300">Open Sensor Telemetry</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-200">View Sensor Telemetry</div>
                   <div className="mt-2 text-base font-black text-white">Go To Monitoring Dashboard</div>
                 </button>
                 <div className="app-subcard px-4 py-3">
@@ -144,7 +137,7 @@ export default function OverviewPage() {
                     <p className="app-eyebrow">Location Site</p>
                     <h3 className="app-section-title">Node deployment overview</h3>
                   </div>
-                  <PreviewLink icon={<MapPin size={14} />} label="Open locations" onClick={() => navigate("/locations")} />
+                  <PreviewLink icon={<MapPin size={14} />} label="View locations" onClick={() => navigate("/locations")} />
                 </div>
                 <div className="rounded-3xl overflow-hidden border border-slate-300 shadow-sm">
                   <NodeMap nodes={locationPreviewNodes} heightClass="h-[260px]" />
@@ -155,7 +148,7 @@ export default function OverviewPage() {
                 <PreviewPanel
                   eyebrow="Alerts"
                   title="Active system alerts"
-                  actionLabel="Open alerts"
+                  actionLabel="View alerts"
                   actionIcon={<Bell size={14} />}
                   onAction={() => navigate("/alerts")}
                 >
@@ -169,7 +162,7 @@ export default function OverviewPage() {
                 <PreviewPanel
                   eyebrow="Data Logs"
                   title="Recent telemetry records"
-                  actionLabel="Open logs"
+                  actionLabel="View logs"
                   actionIcon={<Database size={14} />}
                   onAction={() => navigate("/data")}
                 >
@@ -195,8 +188,6 @@ export default function OverviewPage() {
               </section>
             </div>
           </div>
-        </div>
-      </main>
     </div>
   );
 }

@@ -9,9 +9,7 @@ import {
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
   RefreshCcw
 } from "lucide-react";
-import { Header } from "@/components/Header.jsx";
 import { AppLoader } from "@/components/AppLoader.jsx";
-import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 import CanalSvg from "@/components/CanalSvg.jsx";
@@ -80,6 +78,7 @@ export default function Dashboard() {
   const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const routeToView = useMemo(() => ({
+    "/": "overview",
     "/dashboard": "dashboard",
     "/geospatial-status": "locations",
     "/locations": "locations",
@@ -97,7 +96,6 @@ export default function Dashboard() {
     alerts: "Alerts",
     settings: "Settings",
   }), []);
-  const headerTitle = viewTitles[activeView] || "Dashboard";
 
   const chartData = useMemo(() => {
     if (!allLogs || allLogs.length === 0) return [];
@@ -147,25 +145,11 @@ export default function Dashboard() {
   }, [location.hash, activeView]);
 
   if (loading) return (
-    <div className="flex h-screen flex-col items-center justify-center bg-background text-muted-foreground font-medium">
-      <div className="relative flex h-12 w-12 mb-4">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-12 w-12 bg-blue-500 items-center justify-center">
-          <RefreshCcw className="text-white animate-spin-slow" size={24} />
-        </span>
-      </div>
-      <p className="tracking-widest text-xs font-bold uppercase">Syncing with Sensors...</p>
-    </div>
+    <AppLoader label="Syncing with Sensors..." />
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-      <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-        <Header title={headerTitle} />
-
-        <div className="app-page-container">
+    <div className="app-page-container">
           <>
         {activeView === 'dashboard' && (
           <div className="app-page-stack">
@@ -174,8 +158,20 @@ export default function Dashboard() {
             </header>
 
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Rain Intensity" value={rain.intensity} subtitle={`${rain.rate}`} icon={<CloudRain className="w-5 h-5" />} darkTheme />
-              <MetricCard title="Accumulated Rainfall" value={rain.total1h} subtitle="In total" icon={<Droplets className="w-5 h-5" />} darkTheme />
+              <MetricCard
+                title="Rain Intensity"
+                value={rain.intensity}
+                subtitle={rain.status === "offline" ? "Offline sensor state" : `${rain.rate}`}
+                icon={<CloudRain className="w-5 h-5" />}
+                darkTheme
+              />
+              <MetricCard
+                title="Accumulated Rainfall"
+                value={rain.total1h}
+                subtitle={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Offline sensor state" : "No active rainfall"}
+                icon={<Droplets className="w-5 h-5" />}
+                darkTheme
+              />
               {telemetryMetrics.map((metric) => (
                 <MetricCard
                   key={metric.title}
@@ -234,9 +230,6 @@ export default function Dashboard() {
 
         {activeView === 'settings' && <SettingsPage />}
           </>
-        </div>
-
-      </main>
     </div>
   );
 }
@@ -273,31 +266,29 @@ function WaterLevelSection({ node1, node2 }) {
     { key: "node2", title: "Zone 5", node: node2 },
   ];
   const sectionRisk = getSectionRisk(node1, node2);
-  const showAlertBanner = !["SAFE", "MONITORING"].includes(sectionRisk);
-  const riskMeta = getLevelMeta(sectionRisk);
-  const sectionUpdatedAt = getSectionLastUpdated(node1, node2);
 
   return (
     <section className="water-level-section">
       <div className="space-y-5">
-        <div className="water-level-header">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-foreground md:text-2xl">Water Level Overview</h2>
-            <p className="water-level-subtitle">Monitor the canal water level status.</p>
-            <div className="water-level-status-row">
-            </div>
-          </div> 
-          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${riskMeta.solid}`}>
-                <AlertTriangle className="h-4 w-4" />
-                Overall Status: {getDisplayStatusName(sectionRisk)}
+        <div className="water-level-top-shell">
+          <div className="water-level-header">
+            <div>
+              <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
+              <p className="water-level-subtitle">Monitor the canal water level status.</p>
+              <div className="water-level-status-row">
               </div>
+            </div> 
+            <div className={`water-level-status-badge ${getOverallStatusBadgeClass(sectionRisk)}`}>
+                  <AlertTriangle className="h-4 w-4" />
+                  Overall Status: {getDisplayStatusName(sectionRisk)}
+            </div>
+          </div>
+          <div className="water-level-summary-grid">
+            {nodes.map((item) => (
+              <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
+            ))}
+          </div>
         </div>
-        <div className="water-level-summary-grid">
-          {nodes.map((item) => (
-            <NodeSummaryCard key={item.key} title={item.title} node={item.node} />
-          ))}
-        </div>
-
         <div className="water-level-bottom-grid">
           <FloodRiskStack activeLevel={sectionRisk} maxLevel={getGuideMaxLevel(node1, node2)} />
 
@@ -322,7 +313,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
           ? 'opacity-90 text-slate-700'
           : 'opacity-80 bg-muted/60 border-border text-card-foreground'
         : darkTheme
-          ? 'text-foreground hover:border-white/10 hover:bg-gradient-to-b hover:from-[#004f7a] hover:via-[#00456c] hover:to-[#003250] hover:text-white hover:shadow-[0_8px_24px_rgba(2,23,42,0.28)] hover:-translate-y-1'
+          ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
           : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
     }`}>
       
@@ -337,7 +328,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               ? 'bg-slate-100 text-slate-500'
               : 'bg-muted text-muted-foreground'
             : darkTheme
-              ? 'bg-slate-100 text-slate-700 group-hover:bg-white/10 group-hover:text-white'
+              ? 'bg-slate-100 text-slate-700'
               : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
         }`}>
           {icon}
@@ -348,7 +339,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
         <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
           isOffline
             ? darkTheme ? 'text-slate-600' : 'text-muted-foreground'
-            : darkTheme ? 'text-foreground group-hover:text-white' : 'text-foreground'
+            : 'text-foreground'
         }`}>
           {value}
         </div>
@@ -359,7 +350,7 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false })
               <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
             </>
           ) : (
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-300' : 'text-muted-foreground'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${darkTheme ? 'text-slate-500 group-hover:text-slate-600' : 'text-muted-foreground'}`}>
               {subtitle}
             </p>
           )}
@@ -699,4 +690,13 @@ function getStatusDescription(status) {
   if (status === "watch") return "Water level is within the watch range.";
   if (status === "safe") return "Water level is within the normal operating range.";
   return "Awaiting telemetry from this monitoring node.";
+}
+
+function getOverallStatusBadgeClass(level) {
+  const normalized = normalizeLevelLabel(level);
+  if (normalized === "DANGER") return "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)]";
+  if (normalized === "CAUTION") return "border-orange-500 bg-orange-500 text-white";
+  if (normalized === "WATCH") return "border-yellow-400 bg-yellow-400 text-slate-950";
+  if (normalized === "SAFE") return "border-sky-500 bg-sky-500 text-white";
+  return "border-white/22 bg-white/14 text-white";
 }
