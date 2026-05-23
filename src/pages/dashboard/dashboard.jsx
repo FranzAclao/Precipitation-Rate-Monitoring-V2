@@ -9,9 +9,7 @@ import {
   CloudRain, Waves, Activity, Clock, Droplets, Calendar, AlertTriangle, Eye, Check, CircleAlert,
   RefreshCcw
 } from "lucide-react";
-import { Header } from "@/components/Header.jsx";
 import { AppLoader } from "@/components/AppLoader.jsx";
-import { Sidebar } from "@/components/Sidebar.jsx";
 import LocationsPage from "@/pages/locations/LocationsPage.jsx";
 import SettingsPage from "@/pages/settings/settings.jsx";
 import CanalSvg from "@/components/CanalSvg.jsx";
@@ -80,6 +78,7 @@ export default function Dashboard() {
   const todayStr = useMemo(() => formatLocalDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const routeToView = useMemo(() => ({
+    "/": "overview",
     "/dashboard": "dashboard",
     "/geospatial-status": "locations",
     "/locations": "locations",
@@ -97,7 +96,6 @@ export default function Dashboard() {
     alerts: "Alerts",
     settings: "Settings",
   }), []);
-  const headerTitle = viewTitles[activeView] || "Dashboard";
 
   const chartData = useMemo(() => {
     if (!allLogs || allLogs.length === 0) return [];
@@ -147,25 +145,11 @@ export default function Dashboard() {
   }, [location.hash, activeView]);
 
   if (loading) return (
-    <div className="flex h-screen flex-col items-center justify-center bg-background text-muted-foreground font-medium">
-      <div className="relative flex h-12 w-12 mb-4">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-12 w-12 bg-blue-500 items-center justify-center">
-          <RefreshCcw className="text-white animate-spin-slow" size={24} />
-        </span>
-      </div>
-      <p className="tracking-widest text-xs font-bold uppercase">Syncing with Sensors...</p>
-    </div>
+    <AppLoader label="Syncing with Sensors..." />
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-      <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-        <Header title={headerTitle} />
-
-        <div className="app-page-container">
+    <div className="app-page-container">
           <>
         {activeView === 'dashboard' && (
           <div className="app-page-stack">
@@ -246,9 +230,6 @@ export default function Dashboard() {
 
         {activeView === 'settings' && <SettingsPage />}
           </>
-        </div>
-
-      </main>
     </div>
   );
 }

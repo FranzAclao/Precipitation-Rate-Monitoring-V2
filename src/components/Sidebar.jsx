@@ -63,17 +63,17 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
   };
 
   return (
-    <div className={`fixed inset-x-0 bottom-0 z-40 flex h-20 flex-col transition-all duration-300 md:relative md:inset-auto md:h-auto ${collapsed ? "md:w-20" : "md:w-64"}`}>
+    <div className={`fixed inset-x-0 bottom-0 z-40 flex h-20 flex-col transition-all duration-300 md:relative md:inset-auto md:h-full md:py-0 md:pl-0 ${collapsed ? "md:w-[5.75rem]" : "md:w-[16.75rem]"}`}>
       <button
         type="button"
         onClick={toggleCollapsed}
-        className="absolute top-4 right-[-1.25rem] z-20 hidden h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:bg-white md:inline-flex"
+        className="absolute top-4 right-[-1.05rem] z-20 hidden h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-lg transition hover:bg-slate-50 md:inline-flex"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         <Menu size={18} />
       </button>
 
-      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] shadow-xl dark:border-white/5 md:rounded-tr-3xl md:rounded-br-3xl md:rounded-tl-none">
+      <aside className="flex h-full flex-col overflow-hidden rounded-t-2xl border-r border-white/10 bg-gradient-to-b from-[#003a5a] via-[#00314d] to-[#00253b] shadow-xl dark:border-white/5 md:rounded-[2rem]">
         <div className={`hidden items-center ${collapsed ? "justify-center" : "justify-between"} gap-2 ${collapsed ? "p-4" : "p-6"} border-b border-white/10 md:flex`}>
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-brand-teal w-6 h-6 shrink-0" />

@@ -1,8 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFloodData } from "@/hooks/useFloodData";
-import { Header } from "@/components/Header.jsx";
-import { Sidebar } from "@/components/Sidebar.jsx";
 import { AppLoader } from "@/components/AppLoader.jsx";
 import NodeMap from "@/components/map";
 import { MapPin, Database, Bell, CloudRain, Droplets, Clock, AlertTriangle } from "lucide-react";
@@ -87,27 +85,11 @@ export default function OverviewPage() {
   }, [node1, node2]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-        <Sidebar activeView="overview" node1={node1} node2={node2} lastUpdate={lastUpdate} />
-        <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-          <Header title="Overview" />
-        <div className="app-page-container">
-          <AppLoader label="Loading Overview..." />
-        </div>
-        </main>
-      </div>
-    );
+    return <AppLoader label="Loading Overview..." />;
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans md:h-screen md:overflow-hidden">
-      <Sidebar activeView="overview" node1={node1} node2={node2} lastUpdate={lastUpdate} />
-
-      <main className="flex-1 overflow-y-auto bg-background px-6 pb-6 md:px-12 md:pb-10 lg:px-14 animate-in fade-in duration-500">
-        <Header title="Overview" />
-
-        <div className="app-page-container">
+    <div className="app-page-container">
           <div className="app-page-stack">
             <header className="app-page-header">
               <p className="app-page-copy">System overview with node locations, recent telemetry, and active alerts.</p>
@@ -206,8 +188,6 @@ export default function OverviewPage() {
               </section>
             </div>
           </div>
-        </div>
-      </main>
     </div>
   );
 }

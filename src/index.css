@@ -111,4 +111,17 @@
     border-color: rgb(24, 76, 128);
     background: rgb(24, 76, 128);
   }
+
+  .app-shell {
+    @apply min-h-screen text-foreground font-sans md:h-screen md:overflow-hidden md:p-3;
+    background: linear-gradient(180deg, #003a5a 0%, #00314d 45%, #00253b 100%);
+  }
+
+  .app-main-shell {
+    @apply flex-1 overflow-y-auto bg-background animate-in fade-in duration-500 md:rounded-[2rem] md:border md:border-slate-300 md:shadow-md;
+  }
+
+  .app-main-content {
+    @apply px-6 pb-6 md:px-8 md:pb-8 lg:px-10 lg:pb-10;
+  }
 }
