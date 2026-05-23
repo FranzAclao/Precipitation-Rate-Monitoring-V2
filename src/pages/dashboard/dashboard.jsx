@@ -297,7 +297,7 @@ function WaterLevelSection({ node1, node2 }) {
               <div className="water-level-status-row">
               </div>
             </div> 
-            <div className="water-level-status-badge">
+            <div className={`water-level-status-badge ${getOverallStatusBadgeClass(sectionRisk)}`}>
                   <AlertTriangle className="h-4 w-4" />
                   Overall Status: {getDisplayStatusName(sectionRisk)}
             </div>
@@ -709,4 +709,13 @@ function getStatusDescription(status) {
   if (status === "watch") return "Water level is within the watch range.";
   if (status === "safe") return "Water level is within the normal operating range.";
   return "Awaiting telemetry from this monitoring node.";
+}
+
+function getOverallStatusBadgeClass(level) {
+  const normalized = normalizeLevelLabel(level);
+  if (normalized === "DANGER") return "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)]";
+  if (normalized === "CAUTION") return "border-orange-500 bg-orange-500 text-white";
+  if (normalized === "WATCH") return "border-yellow-400 bg-yellow-400 text-slate-950";
+  if (normalized === "SAFE") return "border-sky-500 bg-sky-500 text-white";
+  return "border-white/22 bg-white/14 text-white";
 }
