@@ -77,8 +77,10 @@ export default function OverviewPage() {
     const labels = [node1?.label, node2?.label].map(normalizeLevelLabel);
     const top = labels.sort((a, b) => getLevelRank(b) - getLevelRank(a))[0] || "MONITORING";
     const anyOffline = node1?.status === "offline" || node2?.status === "offline";
+    const tone = anyOffline ? "offline" : top;
 
     return {
+      tone,
       label: anyOffline ? "Attention needed" : getDisplayStatusName(top),
       subtitle: anyOffline ? "One or more nodes are offline" : "Current canal risk status",
     };
@@ -122,10 +124,17 @@ export default function OverviewPage() {
                   <div className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-200">View Sensor Telemetry</div>
                   <div className="mt-2 text-base font-black text-white">Go To Monitoring Dashboard</div>
                 </button>
-                <div className="app-subcard px-4 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Overall Status</p>
-                  <p className="mt-2 text-lg font-black text-foreground">{overallStatus.label}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-500">{overallStatus.subtitle}</p>
+                <div className={`app-subcard px-4 py-3 ${getOverviewStatusCardClass(overallStatus.tone)}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em]">Overall Status</p>
+                      <p className="mt-2 text-lg font-black">{overallStatus.label}</p>
+                      <p className="mt-1 text-sm font-medium">{overallStatus.subtitle}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/15 p-2">
+                      <AlertTriangle className="h-4 w-4" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -278,4 +287,14 @@ function getDisplayStatusName(label) {
   const normalized = normalizeLevelLabel(label);
   if (normalized === "DANGER") return "Flood Risk";
   return normalized.charAt(0) + normalized.slice(1).toLowerCase();
+}
+
+function getOverviewStatusCardClass(tone) {
+  const normalized = String(tone || "").toUpperCase();
+  if (normalized === "OFFLINE") return "border-amber-300 bg-amber-50 text-amber-900";
+  if (normalized === "DANGER") return "border-red-500 bg-red-600 text-white";
+  if (normalized === "CAUTION") return "border-orange-400 bg-orange-500 text-white";
+  if (normalized === "WATCH") return "border-yellow-300 bg-yellow-300 text-slate-950";
+  if (normalized === "SAFE") return "border-sky-400 bg-sky-500 text-white";
+  return "border-slate-300 bg-white text-foreground";
 }

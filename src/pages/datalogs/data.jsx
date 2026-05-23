@@ -49,13 +49,12 @@ export default function Data() {
   const downloadCSV = () => {
     if (filteredLogs.length === 0) return;
 
-    const headers = ["Timestamp", "Rain Rate (mm/hr)", "Water Level (cm)", "Status"];
+    const headers = ["Timestamp", "Rain Intensity (mm/hr)", "Canal Water Level (cm)"];
 
     const csvRows = filteredLogs.map(log => [
       `"${log.timestamp}"`,
       log.rain || 0,
-      log.level || 0,
-      `"${log.status || 'N/A'}"`
+      log.level || 0
     ]);
 
     const csvContent = [headers, ...csvRows].map(e => e.join(",")).join("\n");
@@ -134,9 +133,8 @@ export default function Data() {
               <thead className="bg-card sticky top-0 shadow-md z-10">
                 <tr>
                   <th className="p-4 font-semibold border-b">Timestamp</th>
-                  <th className="p-4 font-semibold border-b">Rain Rate (mm/hr)</th>
-                  <th className="p-4 font-semibold border-b">Water Level (cm)</th>
-                  <th className="p-4 font-semibold border-b">Status</th>
+                  <th className="p-4 font-semibold border-b">Rain Intensity (mm/hr)</th>
+                  <th className="p-4 font-semibold border-b">Canal Water Level (cm)</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,20 +143,11 @@ export default function Data() {
                     <td className="p-4 font-mono text-muted-foreground">{log.timestamp}</td>
                     <td className="p-4">{log.rain} mm/hr</td>
                     <td className="p-4">{log.level} cm</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        log.status?.toLowerCase() === 'safe' ? 'bg-emerald-100 text-emerald-700' :
-                        log.status?.toLowerCase() === 'warning' || log.status?.toLowerCase() === 'caution' ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {log.status || 'N/A'}
-                      </span>
-                    </td>
                   </tr>
                 ))}
                 {paginatedLogs.length === 0 && (
                   <tr>
-                    <td colSpan="4" className="p-8 text-center text-muted-foreground italic">
+                    <td colSpan="3" className="p-8 text-center text-muted-foreground italic">
                       No logs found for this station.
                     </td>
                   </tr>
