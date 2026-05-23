@@ -154,6 +154,46 @@
     @apply inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-xs font-black;
   }
 
+  .monitoring-overview-link {
+    cursor: pointer;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .monitoring-overview-shell {
+    border-color: rgb(148 163 184);
+    background: linear-gradient(to bottom, rgb(10, 48, 77) 0%, rgb(8, 38, 61) 50%, rgb(6, 26, 43) 100%);
+    color: rgb(255 255 255);
+  }
+
+  .monitoring-overview-header .app-eyebrow {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .monitoring-overview-header .app-section-title {
+    color: rgb(255 255 255);
+  }
+
+  .monitoring-overview-card {
+    background: rgb(255 255 255);
+    color: rgb(15 23 42);
+  }
+
+  .monitoring-overview-link:hover,
+  .monitoring-overview-link:focus-visible {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  .monitoring-overview-link:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.22);
+    outline-offset: 3px;
+  }
+
+  .monitoring-overview-link:hover .app-subcard,
+  .monitoring-overview-link:focus-visible .app-subcard {
+    box-shadow: 0 14px 28px rgba(2, 8, 23, 0.2);
+  }
+
   .app-shell {
     @apply min-h-screen text-foreground font-sans md:h-screen md:overflow-hidden md:p-3;
     background: linear-gradient(180deg, #0a304d 0%, #08263d 48%, #061a2b 100%);
