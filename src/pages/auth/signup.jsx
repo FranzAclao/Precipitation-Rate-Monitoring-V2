@@ -36,8 +36,8 @@ export default function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Signup successful:", userCredential.user.email);
-      // Account created successfully, AuthContext will handle redirect via ProtectedRoute
-      setTimeout(() => navigate("/dashboard"), 500);
+      // Account created successfully, AuthContext will handle redirect to app index (Overview)
+      setTimeout(() => navigate("/", { replace: true }), 500);
     } catch (err) {
       console.error("Signup error:", err.code, err.message);
       let errorMessage = "Signup failed. Please try again.";
