@@ -117,6 +117,8 @@ export default function Dashboard() {
           title,
           value: "ARCHIVE",
           subtitle: "Historical view",
+          badge: "Saved data",
+          badgeTone: "neutral",
         };
       }
 
@@ -126,19 +128,25 @@ export default function Dashboard() {
           title,
           value: "No telemetry",
           subtitle: "Waiting for data",
+          badge: "No data",
+          badgeTone: "neutral",
+          status: "offline",
         };
       }
 
       return {
         title,
         value: detail.offline ? "Offline" : getTelemetryLabel(detail.sendReason),
-        subtitle: detail.timestamp || "No timestamp",
+        subtitle: formatMetricTimestamp(detail.timestamp, { offline: detail.offline }),
+        badge: detail.offline ? "Offline" : "Live",
+        badgeTone: detail.offline ? "offline" : "neutral",
+        status: detail.offline ? "offline" : undefined,
       };
     };
 
     return [
-      buildMetric("node1", "Node 1 System Status"),
-      buildMetric("node2", "Node 2 System Status"),
+      buildMetric("node1", "Node 1 Status"),
+      buildMetric("node2", "Node 2 Status"),
     ];
   }, [selectedDate, todayStr, system]);
 
@@ -163,22 +171,28 @@ export default function Dashboard() {
               <p className="app-page-copy">Real-time metrics and historical rainfall data.</p>
             </header>
 
-            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div className="monitoring-metric-grid">
               <MetricCard
                 title="Rain Intensity"
-                value={rain.intensity}
-                subtitle={rain.status === "offline" ? "Offline sensor state" : `${rain.rate}`}
+                value={rain.status === "offline" ? "Offline" : rain.intensity}
+                subtitle={rain.status === "offline" ? "Sensor state unavailable" : `${rain.rate}`}
+                badge={rain.status === "active" ? "Rain Active" : rain.status === "offline" ? "Offline" : "No Rain"}
+                badgeTone={rain.status === "active" ? "watch" : rain.status === "offline" ? "offline" : "neutral"}
                 icon={<CloudRain className="w-5 h-5" />}
                 darkTheme
+                status={rain.status === "offline" ? "offline" : undefined}
                 showRainfallAnimation
                 rainfallIntensity={rain.intensity}
               />
               <MetricCard
                 title="Accumulated Rainfall"
                 value={rain.total1h}
-                subtitle={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Offline sensor state" : "No active rainfall"}
+                subtitle="Last hour total"
+                badge={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Sensor offline" : "No active rainfall"}
+                badgeTone={rain.status === "active" ? "watch" : rain.status === "offline" ? "offline" : "neutral"}
                 icon={<Droplets className="w-5 h-5" />}
                 darkTheme
+                status={rain.status === "offline" ? "offline" : undefined}
               />
               {telemetryMetrics.map((metric) => (
                 <MetricCard
@@ -186,16 +200,22 @@ export default function Dashboard() {
                   title={metric.title}
                   value={metric.value}
                   subtitle={metric.subtitle}
+                  badge={metric.badge}
+                  badgeTone={metric.badgeTone}
                   icon={<Clock className="w-5 h-5" />}
                   darkTheme
+                  status={metric.status}
                 />
               ))}
               <MetricCard
                 title="Overall Status"
                 value={getDisplayStatusName(sectionRisk)}
-                subtitle="Current canal status"
+                subtitle={getSectionLastUpdated(node1, node2)}
+                badge={getDisplayStatusName(sectionRisk)}
+                badgeTone={String(sectionRisk || "").toLowerCase()}
                 icon={getStatusIcon(sectionRisk)}
                 solidStatusLevel={sectionRisk}
+                className="monitoring-metric-card-span"
               />
             </div>
 
@@ -306,39 +326,39 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, solidStatusLevel = null, showRainfallAnimation = false, rainfallIntensity = null }) {
+function MetricCard({ title, value, subtitle, icon, status, badge = null, badgeTone = "neutral", darkTheme = false, solidStatusLevel = null, showRainfallAnimation = false, rainfallIntensity = null, className = "" }) {
   const [isHovered, setIsHovered] = useState(false);
   const isOffline = status === 'offline';
   const solidStatusCard = solidStatusLevel ? getOverallStatusMetricCardClass(solidStatusLevel) : null;
   
   return (
     <div 
-      className={`relative app-subcard p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between min-h-[128px] sm:min-h-[140px] group overflow-hidden ${
+      className={`relative app-subcard metric-card group overflow-hidden ${className} ${
         solidStatusCard
-          ? `${solidStatusCard.card} hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] dark:hover:shadow-[0_10px_24px_rgba(2,8,23,0.22)]`
+          ? `${solidStatusCard.card} metric-card-status`
           : isOffline 
           ? darkTheme
-            ? 'opacity-90 text-slate-700 dark:text-slate-300'
-            : 'opacity-80 bg-muted/60 border-border text-card-foreground'
+            ? 'metric-card-offline dark:text-slate-300'
+            : 'metric-card-offline bg-muted/60 border-border text-card-foreground'
           : darkTheme
-            ? 'text-foreground hover:border-brand-teal/30 hover:shadow-[0_8px_24px_rgba(69,167,185,0.08)] hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
-            : 'bg-card text-card-foreground border-border hover:border-brand-teal/40 hover:shadow-[0_8px_24px_rgba(69,167,185,0.12)] hover:-translate-y-1'
+            ? 'text-foreground dark:bg-[linear-gradient(180deg,rgba(24,35,51,0.92),rgba(19,29,43,0.92))]'
+            : 'bg-card text-card-foreground border-border'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {showRainfallAnimation && <RainfallAnimation isActive={isHovered} intensity={rainfallIntensity} />}
       
-      <div className="flex justify-between items-start mb-4">
-        <h3 className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
+      <div className="metric-card-header">
+        <h3 className={`metric-card-label ${
           solidStatusCard
             ? solidStatusCard.eyebrow
-            : darkTheme ? 'text-slate-400 group-hover:text-slate-300 dark:text-slate-400 dark:group-hover:text-slate-200' : 'text-muted-foreground'
+            : darkTheme ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'
         }`}>
           {title}
         </h3>
         
-        <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
+        <div className={`metric-card-icon ${
           solidStatusCard
             ? solidStatusCard.icon
             : isOffline 
@@ -347,14 +367,14 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
               : 'bg-muted text-muted-foreground'
             : darkTheme
               ? 'bg-slate-100 text-slate-700 dark:bg-white/8 dark:text-slate-200'
-              : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
+              : 'bg-brand-teal/10 text-brand-teal'
         }`}>
           {icon}
         </div>
       </div>
       
-      <div>
-        <div className={`break-words text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${
+      <div className="metric-card-body">
+        <div className={`metric-card-value ${
           solidStatusCard
             ? solidStatusCard.value
             : isOffline
@@ -363,21 +383,19 @@ function MetricCard({ title, value, subtitle, icon, status, darkTheme = false, s
         }`}>
           {value}
         </div>
-        <div className="flex items-center gap-1.5 mt-1.5">
-          {isOffline ? (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.5)]"></span>
-              <p className="text-[10px] font-bold uppercase text-red-500 tracking-wider">OFFLINE</p>
-            </>
-          ) : (
-            <p className={`text-[10px] font-bold uppercase tracking-wider ${
-              solidStatusCard
-                ? solidStatusCard.subtitle
-                : darkTheme ? 'text-slate-500 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300' : 'text-muted-foreground'
-            }`}>
-              {subtitle}
-            </p>
-          )}
+        <div className="metric-card-meta">
+          {badge || isOffline ? (
+            <span className={`metric-card-badge ${getMetricCardBadgeClass(isOffline ? "offline" : badgeTone, solidStatusCard)}`}>
+              {badge || "Offline"}
+            </span>
+          ) : null}
+          <p className={`metric-card-subtitle ${
+            solidStatusCard
+              ? solidStatusCard.subtitle
+              : darkTheme ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'
+          }`}>
+            {subtitle}
+          </p>
         </div>
       </div>
     </div>
@@ -617,6 +635,28 @@ function formatNodeTime(timestamp) {
   return value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 }
 
+function formatMetricTimestamp(timestamp, { offline = false } = {}) {
+  const value = parseTimestampValue(timestamp);
+  const prefix = offline ? "Last active" : "Updated";
+  if (!value) return `${prefix} --:--`;
+
+  const diffMinutes = Math.round((Date.now() - value.getTime()) / 60000);
+  if (diffMinutes >= 0 && diffMinutes < 60) {
+    return `${prefix} ${diffMinutes}m ago`;
+  }
+
+  return `${prefix} ${value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+}
+
+function parseTimestampValue(timestamp) {
+  if (!timestamp) return null;
+  const value = timestamp instanceof Date
+    ? new Date(timestamp.getTime())
+    : new Date(String(timestamp).replace(" ", "T"));
+  if (Number.isNaN(value.getTime())) return null;
+  return value;
+}
+
 function formatDepth(value, unit) {
   const numeric = toLevelNumber(value);
   if (numeric === null) return "--";
@@ -714,11 +754,10 @@ function getNodeHoverTone(status, isOffline) {
 
 function getSectionLastUpdated(node1, node2) {
   const dates = [node1?.timestamp, node2?.timestamp]
-    .map((value) => new Date(String(value || "").replace(" ", "T")))
-    .filter((value) => !Number.isNaN(value.getTime()))
+    .map((value) => parseTimestampValue(value))
+    .filter(Boolean)
     .sort((a, b) => b - a);
-  if (dates.length === 0) return "--:--:--";
-  return dates[0].toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  return formatMetricTimestamp(dates[0]);
 }
 
 function getGuideMaxLevel(node1, node2) {
@@ -753,40 +792,52 @@ function getCanalSummaryMessage(level, delta, unit) {
 function getOverallStatusMetricCardClass(level) {
   const normalized = normalizeLevelLabel(level);
   if (normalized === "DANGER") return {
-    card: "border-red-600 bg-red-600 text-white shadow-[0_10px_24px_rgba(185,28,28,0.28)] dark:border-red-500/40 dark:bg-red-500/18 dark:text-red-50",
-    eyebrow: "text-red-100",
-    icon: "bg-white/15 text-white dark:bg-red-500/18 dark:text-red-100",
-    value: "text-white",
-    subtitle: "text-red-100",
+    card: "border-red-200 bg-red-50 text-red-950 shadow-[0_12px_26px_rgba(185,28,28,0.12)] dark:border-red-500/28 dark:bg-red-500/14 dark:text-red-50",
+    eyebrow: "text-red-700 dark:text-red-100",
+    icon: "bg-red-100 text-red-700 dark:bg-red-500/16 dark:text-red-100",
+    value: "text-red-950 dark:text-red-50",
+    subtitle: "text-red-700 dark:text-red-100",
   };
   if (normalized === "CAUTION") return {
-    card: "border-orange-500 bg-orange-500 text-white shadow-[0_10px_24px_rgba(234,88,12,0.24)] dark:border-orange-500/40 dark:bg-orange-500/16 dark:text-orange-50",
-    eyebrow: "text-orange-100",
-    icon: "bg-white/15 text-white dark:bg-orange-500/18 dark:text-orange-100",
-    value: "text-white",
-    subtitle: "text-orange-100",
+    card: "border-orange-200 bg-orange-50 text-orange-950 shadow-[0_12px_26px_rgba(234,88,12,0.1)] dark:border-orange-500/28 dark:bg-orange-500/14 dark:text-orange-50",
+    eyebrow: "text-orange-700 dark:text-orange-100",
+    icon: "bg-orange-100 text-orange-700 dark:bg-orange-500/16 dark:text-orange-100",
+    value: "text-orange-950 dark:text-orange-50",
+    subtitle: "text-orange-700 dark:text-orange-100",
   };
   if (normalized === "WATCH") return {
-    card: "border-yellow-400 bg-yellow-400 text-slate-950 shadow-[0_10px_24px_rgba(250,204,21,0.22)] dark:border-amber-400/34 dark:bg-amber-400/18 dark:text-amber-50",
-    eyebrow: "text-slate-700 dark:text-amber-100",
-    icon: "bg-white/35 text-slate-950 dark:bg-amber-400/18 dark:text-amber-100",
-    value: "text-slate-950 dark:text-amber-50",
-    subtitle: "text-slate-700 dark:text-amber-100",
+    card: "border-yellow-200 bg-yellow-50 text-amber-950 shadow-[0_12px_26px_rgba(250,204,21,0.1)] dark:border-amber-400/28 dark:bg-amber-400/14 dark:text-amber-50",
+    eyebrow: "text-amber-700 dark:text-amber-100",
+    icon: "bg-yellow-100 text-amber-700 dark:bg-amber-400/16 dark:text-amber-100",
+    value: "text-amber-950 dark:text-amber-50",
+    subtitle: "text-amber-700 dark:text-amber-100",
   };
   if (normalized === "SAFE") return {
-    card: "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_rgba(16,185,129,0.22)] dark:border-emerald-500/34 dark:bg-emerald-500/16 dark:text-emerald-50",
-    eyebrow: "text-emerald-100",
-    icon: "bg-white/15 text-white dark:bg-emerald-500/18 dark:text-emerald-100",
-    value: "text-white",
-    subtitle: "text-emerald-100",
+    card: "border-emerald-200 bg-emerald-50 text-emerald-950 shadow-[0_12px_26px_rgba(16,185,129,0.1)] dark:border-emerald-500/28 dark:bg-emerald-500/14 dark:text-emerald-50",
+    eyebrow: "text-emerald-700 dark:text-emerald-100",
+    icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/16 dark:text-emerald-100",
+    value: "text-emerald-950 dark:text-emerald-50",
+    subtitle: "text-emerald-700 dark:text-emerald-100",
   };
   return {
-    card: "border-slate-400 bg-slate-400 text-white shadow-[0_10px_24px_rgba(100,116,139,0.18)] dark:border-slate-500/28 dark:bg-slate-500/14 dark:text-slate-50",
-    eyebrow: "text-slate-100",
-    icon: "bg-white/15 text-white dark:bg-white/8 dark:text-slate-100",
-    value: "text-white",
-    subtitle: "text-slate-100",
+    card: "border-slate-200 bg-slate-50 text-slate-950 shadow-[0_12px_26px_rgba(100,116,139,0.08)] dark:border-slate-500/24 dark:bg-slate-500/12 dark:text-slate-50",
+    eyebrow: "text-slate-600 dark:text-slate-100",
+    icon: "bg-slate-100 text-slate-700 dark:bg-white/8 dark:text-slate-100",
+    value: "text-slate-950 dark:text-slate-50",
+    subtitle: "text-slate-600 dark:text-slate-100",
   };
+}
+
+function getMetricCardBadgeClass(tone, solidStatusCard) {
+  if (solidStatusCard) {
+    return "border-black/8 bg-white/72 text-current dark:border-white/12 dark:bg-white/8";
+  }
+  if (tone === "offline") return "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/24 dark:bg-amber-400/10 dark:text-amber-100";
+  if (tone === "danger") return "border-red-200 bg-red-50 text-red-800 dark:border-red-400/24 dark:bg-red-400/10 dark:text-red-100";
+  if (tone === "caution") return "border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-400/24 dark:bg-orange-400/10 dark:text-orange-100";
+  if (tone === "watch") return "border-yellow-200 bg-yellow-50 text-amber-800 dark:border-amber-400/24 dark:bg-amber-400/10 dark:text-amber-100";
+  if (tone === "safe") return "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/24 dark:bg-emerald-400/10 dark:text-emerald-100";
+  return "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-400/24 dark:bg-white/6 dark:text-slate-200";
 }
 
 function getStatusIcon(tone) {
