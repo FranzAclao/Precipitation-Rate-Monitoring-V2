@@ -116,8 +116,7 @@ export default function Dashboard() {
         return {
           title,
           value: "ARCHIVE",
-          subtitle: "Historical view",
-          badge: "Saved data",
+          badge: "Historical view",
           badgeTone: "neutral",
         };
       }
@@ -127,8 +126,7 @@ export default function Dashboard() {
         return {
           title,
           value: "No telemetry",
-          subtitle: "Waiting for data",
-          badge: "No data",
+          badge: "Waiting for data",
           badgeTone: "neutral",
           status: "offline",
         };
@@ -137,8 +135,7 @@ export default function Dashboard() {
       return {
         title,
         value: detail.offline ? "Offline" : getTelemetryLabel(detail.sendReason),
-        subtitle: formatMetricTimestamp(detail.timestamp, { offline: detail.offline }),
-        badge: detail.offline ? "Offline" : "Live",
+        badge: formatMetricTimestamp(detail.timestamp, { offline: detail.offline }),
         badgeTone: detail.offline ? "offline" : "neutral",
         status: detail.offline ? "offline" : undefined,
       };
@@ -175,8 +172,7 @@ export default function Dashboard() {
               <MetricCard
                 title="Rain Intensity"
                 value={rain.status === "offline" ? "Offline" : rain.intensity}
-                subtitle={rain.status === "offline" ? "Sensor state unavailable" : `${rain.rate}`}
-                badge={rain.status === "active" ? "Rain Active" : rain.status === "offline" ? "Offline" : "No Rain"}
+                badge={rain.status === "offline" ? "Sensor state unavailable" : `${rain.rate}`}
                 badgeTone={rain.status === "active" ? "watch" : rain.status === "offline" ? "offline" : "neutral"}
                 icon={<CloudRain className="w-5 h-5" />}
                 darkTheme
@@ -187,7 +183,6 @@ export default function Dashboard() {
               <MetricCard
                 title="Accumulated Rainfall"
                 value={rain.total1h}
-                subtitle="Last hour total"
                 badge={rain.status === "active" ? "Current rainfall event" : rain.status === "offline" ? "Sensor offline" : "No active rainfall"}
                 badgeTone={rain.status === "active" ? "watch" : rain.status === "offline" ? "offline" : "neutral"}
                 icon={<Droplets className="w-5 h-5" />}
@@ -199,7 +194,6 @@ export default function Dashboard() {
                   key={metric.title}
                   title={metric.title}
                   value={metric.value}
-                  subtitle={metric.subtitle}
                   badge={metric.badge}
                   badgeTone={metric.badgeTone}
                   icon={<Clock className="w-5 h-5" />}
@@ -210,8 +204,7 @@ export default function Dashboard() {
               <MetricCard
                 title="Overall Status"
                 value={getDisplayStatusName(sectionRisk)}
-                subtitle={getSectionLastUpdated(node1, node2)}
-                badge={getDisplayStatusName(sectionRisk)}
+                badge={getSectionLastUpdated(node1, node2)}
                 badgeTone={String(sectionRisk || "").toLowerCase()}
                 icon={getStatusIcon(sectionRisk)}
                 solidStatusLevel={sectionRisk}
@@ -326,7 +319,7 @@ function WaterLevelSection({ node1, node2 }) {
   );
 }
 
-function MetricCard({ title, value, subtitle, icon, status, badge = null, badgeTone = "neutral", darkTheme = false, solidStatusLevel = null, showRainfallAnimation = false, rainfallIntensity = null, className = "" }) {
+function MetricCard({ title, value, icon, status, badge = null, badgeTone = "neutral", darkTheme = false, solidStatusLevel = null, showRainfallAnimation = false, rainfallIntensity = null, className = "" }) {
   const [isHovered, setIsHovered] = useState(false);
   const isOffline = status === 'offline';
   const solidStatusCard = solidStatusLevel ? getOverallStatusMetricCardClass(solidStatusLevel) : null;
@@ -389,13 +382,6 @@ function MetricCard({ title, value, subtitle, icon, status, badge = null, badgeT
               {badge || "Offline"}
             </span>
           ) : null}
-          <p className={`metric-card-subtitle ${
-            solidStatusCard
-              ? solidStatusCard.subtitle
-              : darkTheme ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'
-          }`}>
-            {subtitle}
-          </p>
         </div>
       </div>
     </div>
@@ -781,35 +767,35 @@ function getOverallStatusMetricCardClass(level) {
   if (normalized === "DANGER") return {
     card: "border-red-200 bg-red-50 text-red-950 shadow-[0_12px_26px_rgba(185,28,28,0.12)] dark:border-red-500/28 dark:bg-red-500/14 dark:text-red-50",
     eyebrow: "text-red-700 dark:text-red-100",
-    icon: "bg-red-100 text-red-700 dark:bg-red-500/16 dark:text-red-100",
+    icon: "border border-red-200 bg-red-50 text-red-700 dark:border-red-500/22 dark:bg-red-500/16 dark:text-red-100",
     value: "text-red-950 dark:text-red-50",
     subtitle: "text-red-700 dark:text-red-100",
   };
   if (normalized === "CAUTION") return {
-    card: "border-orange-200 bg-orange-50 text-orange-950 shadow-[0_12px_26px_rgba(234,88,12,0.1)] dark:border-orange-500/28 dark:bg-orange-500/14 dark:text-orange-50",
-    eyebrow: "text-orange-700 dark:text-orange-100",
-    icon: "bg-orange-100 text-orange-700 dark:bg-orange-500/16 dark:text-orange-100",
-    value: "text-orange-950 dark:text-orange-50",
-    subtitle: "text-orange-700 dark:text-orange-100",
+    card: "border-amber-200 bg-amber-50 text-amber-950 shadow-[0_12px_26px_rgba(217,119,6,0.1)] dark:border-amber-500/28 dark:bg-amber-500/14 dark:text-amber-50",
+    eyebrow: "text-amber-700 dark:text-amber-100",
+    icon: "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/22 dark:bg-amber-500/16 dark:text-amber-100",
+    value: "text-amber-950 dark:text-amber-50",
+    subtitle: "text-amber-700 dark:text-amber-100",
   };
   if (normalized === "WATCH") return {
-    card: "border-yellow-200 bg-yellow-50 text-amber-950 shadow-[0_12px_26px_rgba(250,204,21,0.1)] dark:border-amber-400/28 dark:bg-amber-400/14 dark:text-amber-50",
+    card: "border-amber-200 bg-amber-50 text-amber-950 shadow-[0_12px_26px_rgba(217,119,6,0.08)] dark:border-amber-400/28 dark:bg-amber-400/14 dark:text-amber-50",
     eyebrow: "text-amber-700 dark:text-amber-100",
-    icon: "bg-yellow-100 text-amber-700 dark:bg-amber-400/16 dark:text-amber-100",
+    icon: "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/22 dark:bg-amber-400/16 dark:text-amber-100",
     value: "text-amber-950 dark:text-amber-50",
     subtitle: "text-amber-700 dark:text-amber-100",
   };
   if (normalized === "SAFE") return {
-    card: "border-emerald-200 bg-emerald-50 text-emerald-950 shadow-[0_12px_26px_rgba(16,185,129,0.1)] dark:border-emerald-500/28 dark:bg-emerald-500/14 dark:text-emerald-50",
-    eyebrow: "text-emerald-700 dark:text-emerald-100",
-    icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/16 dark:text-emerald-100",
-    value: "text-emerald-950 dark:text-emerald-50",
-    subtitle: "text-emerald-700 dark:text-emerald-100",
+    card: "border-slate-200 bg-white/90 text-slate-950 shadow-[0_12px_26px_rgba(15,23,42,0.08)] dark:border-slate-500/24 dark:bg-white/8 dark:text-slate-50",
+    eyebrow: "text-slate-600 dark:text-slate-100",
+    icon: "border border-slate-200 bg-white/90 text-slate-700 dark:border-slate-500/22 dark:bg-white/8 dark:text-slate-100",
+    value: "text-slate-950 dark:text-slate-50",
+    subtitle: "text-slate-600 dark:text-slate-100",
   };
   return {
-    card: "border-slate-200 bg-slate-50 text-slate-950 shadow-[0_12px_26px_rgba(100,116,139,0.08)] dark:border-slate-500/24 dark:bg-slate-500/12 dark:text-slate-50",
+    card: "border-slate-200 bg-white/90 text-slate-950 shadow-[0_12px_26px_rgba(15,23,42,0.08)] dark:border-slate-500/24 dark:bg-white/8 dark:text-slate-50",
     eyebrow: "text-slate-600 dark:text-slate-100",
-    icon: "bg-slate-100 text-slate-700 dark:bg-white/8 dark:text-slate-100",
+    icon: "border border-slate-200 bg-white/90 text-slate-700 dark:border-slate-500/22 dark:bg-white/8 dark:text-slate-100",
     value: "text-slate-950 dark:text-slate-50",
     subtitle: "text-slate-600 dark:text-slate-100",
   };
