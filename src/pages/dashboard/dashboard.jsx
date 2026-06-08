@@ -302,7 +302,7 @@ function WaterLevelSection({ node1, node2 }) {
           <div className="water-level-header">
             <div>
               <h2 className="water-level-heading text-xl font-black tracking-tight md:text-2xl">Water Level Overview</h2>
-              <p className="water-level-subtitle">i-monitor ang kanal chuy kay basin taas ang tubig.</p>
+              <p className="water-level-subtitle">Monitor canal water level.</p>
               <div className="water-level-status-row">
               </div>
             </div>

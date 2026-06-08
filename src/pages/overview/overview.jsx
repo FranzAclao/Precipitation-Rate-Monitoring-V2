@@ -165,24 +165,12 @@ export default function OverviewPage() {
                     <h3 className="app-section-title">Node deployment overview</h3>
                   </div>
                 </div>
-                <div className="rounded-3xl overflow-hidden border border-slate-300 shadow-sm">
+                <div className="rounded-lg overflow-hidden border border-slate-300 shadow-sm">
                   <NodeMap nodes={locationPreviewNodes} heightClass="h-[260px]" />
                 </div>
               </section>
 
               <section className="space-y-6">
-                <PreviewPanel
-                  eyebrow="Alerts"
-                  title="Active system alerts"
-                  onClick={() => navigate("/alerts")}
-                >
-                  <div className="space-y-3">
-                    {alertPreviewItems.map((item, index) => (
-                      <PreviewAlert key={`${item.text}-${index}`} tone={item.tone} text={item.text} />
-                    ))}
-                  </div>
-                </PreviewPanel>
-
                 <PreviewPanel
                   eyebrow="Data Logs"
                   title="Recent telemetry records"
@@ -193,7 +181,7 @@ export default function OverviewPage() {
                       <p className="text-sm font-medium text-muted-foreground">No telemetry records available yet.</p>
                     ) : (
                       recentLogsPreview.map((log, index) => (
-                        <div key={`${log.timestamp}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3">
+                        <div key={`${log.timestamp}-${index}`} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white/90 px-4 py-3">
                           <div className="min-w-0">
                             <p className="text-sm font-black text-foreground">{String(log.nodeKey || log.nodeId || "Node").toUpperCase()}</p>
                             <p className="truncate text-xs font-medium text-muted-foreground">{log.timestamp}</p>
@@ -247,7 +235,7 @@ function PreviewAlert({ tone, text }) {
       : "border-slate-200 bg-white/90 text-slate-700";
 
   return (
-    <div className={`rounded-2xl border px-4 py-3 text-sm font-bold shadow-md ${toneClass}`}>
+    <div className={`rounded-md border px-4 py-3 text-sm font-bold shadow-md ${toneClass}`}>
       {text}
     </div>
   );
