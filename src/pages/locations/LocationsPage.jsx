@@ -62,25 +62,16 @@ export default function LocationsPage() {
             </div>
           </div>
 
-          <div className="grid gap-4">
-            {locationNodes.map((node) => (
-              <LocationCard key={node.id} node={node} />
-            ))}
-          </div>
+          
         </section>
 
         <aside className="space-y-6">
           <div className="app-card p-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">Spatial insight</p>
-            <p className="text-sm leading-6 text-muted-foreground">
-              This view displays deployed sensor nodes with their reported location, and connectivity status. 
-            </p>
-          </div>
-
-          <div className="app-card p-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-4">Last sync</p>
-            <div className="app-subcard rounded-3xl text-sm font-semibold text-foreground">
-              {lastUpdate}
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold mb-3">Sensor Nodes</p>
+            <div className="space-y-4">
+              {locationNodes.map((node) => (
+                <LocationCard key={node.id} node={node} />
+              ))}
             </div>
           </div>
         </aside>
