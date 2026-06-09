@@ -181,7 +181,7 @@ export default function OverviewPage() {
                       <p className="text-sm font-medium text-muted-foreground">No telemetry records available yet.</p>
                     ) : (
                       recentLogsPreview.map((log, index) => (
-                        <div key={`${log.timestamp}-${index}`} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white/90 px-4 py-3">
+                      <div key={`${log.timestamp}-${index}`} className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3">
                           <div className="min-w-0">
                             <p className="text-sm font-black text-foreground">{String(log.nodeKey || log.nodeId || "Node").toUpperCase()}</p>
                             <p className="truncate text-xs font-medium text-muted-foreground">{log.timestamp}</p>
@@ -232,7 +232,7 @@ function PreviewAlert({ tone, text }) {
     ? "border-red-200 bg-red-50 text-red-700"
     : tone === "warning"
       ? "border-amber-200 bg-amber-50 text-amber-700"
-      : "border-slate-200 bg-white/90 text-slate-700";
+      : "border-border bg-card text-foreground";
 
   return (
     <div className={`rounded-md border px-4 py-3 text-sm font-bold shadow-md ${toneClass}`}>
@@ -274,22 +274,22 @@ function getDisplayStatusName(label) {
 
 function getOverviewStatusCardClass(tone) {
   const normalized = String(tone || "").toUpperCase();
-  if (normalized === "OFFLINE") return "border-amber-200 bg-amber-50/80 text-amber-950";
-  if (normalized === "DANGER") return "border-red-200 bg-red-50/90 text-red-950";
-  if (normalized === "CAUTION") return "border-orange-200 bg-orange-50/90 text-orange-950";
-  if (normalized === "WATCH") return "border-yellow-200 bg-yellow-50/90 text-amber-950";
-  if (normalized === "SAFE") return "border-emerald-200 bg-emerald-50/90 text-emerald-950";
-  return "border-slate-300 bg-white text-foreground";
+  if (normalized === "OFFLINE") return "border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/28 dark:bg-amber-500/14 dark:text-amber-50";
+  if (normalized === "DANGER") return "border-red-200 bg-red-50/90 text-red-950 dark:border-red-500/28 dark:bg-red-500/14 dark:text-red-50";
+  if (normalized === "CAUTION") return "border-orange-200 bg-orange-50/90 text-orange-950 dark:border-amber-500/28 dark:bg-amber-500/14 dark:text-amber-50";
+  if (normalized === "WATCH") return "border-yellow-200 bg-yellow-50/90 text-amber-950 dark:border-amber-400/28 dark:bg-amber-400/14 dark:text-amber-50";
+  if (normalized === "SAFE") return "border-emerald-200 bg-emerald-50/90 text-emerald-950 dark:border-emerald-500/28 dark:bg-emerald-500/14 dark:text-emerald-50";
+  return "border-border bg-card text-foreground";
 }
 
 function getOverviewStatusPillClass(tone) {
   const normalized = String(tone || "").toUpperCase();
-  if (normalized === "OFFLINE") return "border-amber-300 bg-amber-100 text-amber-900";
-  if (normalized === "DANGER") return "border-red-300 bg-red-100 text-red-900";
-  if (normalized === "CAUTION") return "border-orange-300 bg-orange-100 text-orange-900";
-  if (normalized === "WATCH") return "border-yellow-300 bg-yellow-100 text-amber-900";
-  if (normalized === "SAFE") return "border-emerald-300 bg-emerald-100 text-emerald-900";
-  return "border-slate-300 bg-slate-100 text-slate-900";
+  if (normalized === "OFFLINE") return "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100";
+  if (normalized === "DANGER") return "border-red-300 bg-red-100 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100";
+  if (normalized === "CAUTION") return "border-orange-300 bg-orange-100 text-orange-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100";
+  if (normalized === "WATCH") return "border-yellow-300 bg-yellow-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100";
+  if (normalized === "SAFE") return "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100";
+  return "border-border bg-card text-foreground";
 }
 
 function getStatusIcon(tone) {
