@@ -1,4 +1,4 @@
-import { DEFAULT_NODE_DEPTHS_CM, DEFAULT_STATE, LAT_KEYS, LNG_KEYS } from "./constants";
+import { DEFAULT_NODE_DEPTHS_CM, DEFAULT_STATE, LAT_KEYS, LNG_KEYS, HARDCODED_NODE_COORDS } from "./constants";
 import { checkOffline, formatStatusTimestamp, toDate } from "./dateUtils";
 import {
   getCoord,
@@ -102,6 +102,10 @@ export function createNodeSummary(nodeKey, latestEntry) {
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
   const fillRatio = maxLevel ? Math.min(level / maxLevel, 1) : 0;
+  
+  // Use hardcoded coordinates
+  const nodeId = toNodeId(nodeKey);
+  const coords = HARDCODED_NODE_COORDS[nodeId] || { lat: 0, lng: 0 };
 
   return {
     id: nodeKey,
@@ -111,8 +115,8 @@ export function createNodeSummary(nodeKey, latestEntry) {
     label: offline ? "Offline" : deriveLevelLabel(latestEntry),
     status: offline ? "offline" : "online",
     timestamp,
-    lat: getCoord(latestEntry, LAT_KEYS),
-    lng: getCoord(latestEntry, LNG_KEYS),
+    lat: coords.lat,
+    lng: coords.lng,
     rainRate: getRainRateValue(latestEntry),
     rainfall: getRainfallValue(latestEntry),
     maxLevel,
@@ -125,14 +129,18 @@ export function createPrimaryNodeState(nodeKey, latestEntry) {
   const offline = !latestEntry || checkOffline(timestamp);
   const level = getWaterLevelValue(latestEntry);
   const maxLevel = getMaxWaterLevelValue(latestEntry) ?? getNodeDepthFallback(nodeKey);
+  
+  // Use hardcoded coordinates
+  const nodeId = toNodeId(nodeKey);
+  const coords = HARDCODED_NODE_COORDS[nodeId] || { lat: 0, lng: 0 };
 
   return {
     level: offline ? "NO DATA" : level.toFixed(2),
     label: offline ? "Offline" : deriveLevelLabel(latestEntry),
     status: offline ? "offline" : "online",
     timestamp,
-    lat: getCoord(latestEntry, LAT_KEYS),
-    lng: getCoord(latestEntry, LNG_KEYS),
+    lat: coords.lat,
+    lng: coords.lng,
     maxLevel,
     fillRatio: maxLevel ? Math.min(level / maxLevel, 1) : 0,
   };

@@ -116,7 +116,7 @@ export default function Map({ nodes = [], node1, node2, heightClass = "h-[500px]
     <div className="app-card overflow-hidden p-0">
       <div className="flex justify-between items-center border-b border-slate-300 px-4 py-4">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-          Geospatial Status: Del Carmen
+          Field Map: Del Carmen
         </h3>
         <div className="flex gap-4 text-[10px] font-bold uppercase">
           <span className="flex items-center gap-1">

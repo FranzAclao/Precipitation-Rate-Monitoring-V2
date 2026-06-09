@@ -2,11 +2,12 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { UserMenu } from "@/components/UserMenu.jsx";
+import { NotificationButton } from "@/components/NotificationButton.jsx";
 
 const ROUTE_BREADCRUMBS = {
   "/": [{ label: "Overview" }],
   "/dashboard": [{ label: "Overview", to: "/" }, { label: "Monitoring" }],
-  "/geospatial-status": [{ label: "Overview", to: "/" }, { label: "Sensor Nodes" }],
+  "/field-map": [{ label: "Overview", to: "/" }, { label: "Field Map" }],
   "/locations": [{ label: "Overview", to: "/" }, { label: "Sensor Nodes" }],
   "/data": [{ label: "Overview", to: "/" }, { label: "Data Logs" }],
   "/analysis": [{ label: "Overview", to: "/" }, { label: "ML Analysis" }],
@@ -19,7 +20,7 @@ function getBreadcrumbs(pathname) {
     return ROUTE_BREADCRUMBS[pathname];
   }
 
-  const nodeDetailMatch = /^\/(?:geospatial-status|locations)\/([^/]+)$/.exec(pathname);
+  const nodeDetailMatch = /^\/(?:field-map|locations)\/([^/]+)$/.exec(pathname);
   if (nodeDetailMatch) {
     const nodeSlug = nodeDetailMatch[1];
     const nodeLabel = nodeSlug
@@ -45,7 +46,7 @@ function getBreadcrumbs(pathname) {
   ];
 }
 
-export function Header({ title = "Precipitation Rate Monitoring System" }) {
+export function Header({ title = "Precipitation Rate Monitoring System", node1, node2 }) {
   const location = useLocation();
   const breadcrumbs = getBreadcrumbs(location.pathname);
   const showBreadcrumbs = location.pathname !== "/";
@@ -77,7 +78,10 @@ export function Header({ title = "Precipitation Rate Monitoring System" }) {
           </nav>
         )}
       </div>
-      <UserMenu />
+      <div className="flex items-center gap-4">
+        <NotificationButton node1={node1} node2={node2} />
+        <UserMenu />
+      </div>
     </header>
   );
 }

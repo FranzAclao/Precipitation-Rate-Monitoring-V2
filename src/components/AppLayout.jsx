@@ -7,7 +7,7 @@ import { useFloodData } from "@/hooks/useFloodData";
 const VIEW_TITLES = {
   "/": "Overview",
   "/dashboard": "Monitoring Dashboard",
-  "/geospatial-status": "Sensor Nodes",
+  "/field-map": "Field Map",
   "/locations": "Sensor Nodes",
   "/data": "Data Logs",
   "/analysis": "ML Analysis",
@@ -18,7 +18,7 @@ const VIEW_TITLES = {
 const ACTIVE_VIEWS = {
   "/": "overview",
   "/dashboard": "dashboard",
-  "/geospatial-status": "locations",
+  "/field-map": "locations",
   "/locations": "locations",
   "/data": "data",
   "/analysis": "analysis",
@@ -37,7 +37,7 @@ export function AppLayout() {
     <div className="app-shell flex">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
       <main className="app-main-shell">
-        <Header title={headerTitle} />
+        <Header title={headerTitle} node1={node1} node2={node2} />
         <div className="app-main-content">
           <Outlet />
         </div>

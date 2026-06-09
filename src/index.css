@@ -178,10 +178,7 @@
     border-left-width: 0;
     border-right-width: 0;
     border-bottom-width: 0;
-    border-top-left-radius: 1.25rem;
-    border-top-right-radius: 1.25rem;
-    border-bottom-left-radius: 1.35rem;
-    border-bottom-right-radius: 1.35rem;
+    @apply rounded-lg;
     background: rgb(255 255 255);
     color: rgb(15 23 42);
   }

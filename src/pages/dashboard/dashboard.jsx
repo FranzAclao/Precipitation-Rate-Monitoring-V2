@@ -85,7 +85,7 @@ export default function Dashboard() {
   const routeToView = useMemo(() => ({
     "/": "overview",
     "/dashboard": "dashboard",
-    "/geospatial-status": "locations",
+    "/field-map": "locations",
     "/locations": "locations",
     "/data": "data",
     "/analysis": "analysis",
