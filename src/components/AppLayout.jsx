@@ -37,7 +37,7 @@ export function AppLayout() {
     <div className="app-shell flex">
       <Sidebar activeView={activeView} node1={node1} node2={node2} lastUpdate={lastUpdate} />
       <main className="app-main-shell">
-        <Header title={headerTitle} />
+        <Header title={headerTitle} node1={node1} node2={node2} />
         <div className="app-main-content">
           <Outlet />
         </div>
