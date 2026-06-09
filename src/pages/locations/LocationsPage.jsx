@@ -83,7 +83,7 @@ export default function LocationsPage() {
 function SummaryTile({ label, value, icon }) {
   return (
     <div className="app-subcard rounded-3xl px-4 py-3 shadow-md flex items-center gap-3">
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 dark:bg-slate-700/10 dark:text-slate-200">
         {icon}
       </div>
       <div>
