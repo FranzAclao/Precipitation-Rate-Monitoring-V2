@@ -2,6 +2,11 @@ export const DEFAULT_NODE_DEPTHS_CM = {
   node2: 55,
 };
 
+export const HARDCODED_NODE_COORDS = {
+  node1: { lat: 8.2327, lng: 124.2594 }, // 8°13'57.57"N 124°15'33.99"E
+  node2: { lat: 8.2345, lng: 124.2525 }, // 8°14'04.33"N 124°15'08.85"E
+};
+
 export const ALLOWED_NODE_PATHS = ["Node1", "Node2"];
 
 export const DEFAULT_STATE = {

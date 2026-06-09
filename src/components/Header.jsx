@@ -7,7 +7,7 @@ import { NotificationButton } from "@/components/NotificationButton.jsx";
 const ROUTE_BREADCRUMBS = {
   "/": [{ label: "Overview" }],
   "/dashboard": [{ label: "Overview", to: "/" }, { label: "Monitoring" }],
-  "/geospatial-status": [{ label: "Overview", to: "/" }, { label: "Sensor Nodes" }],
+  "/field-map": [{ label: "Overview", to: "/" }, { label: "Field Map" }],
   "/locations": [{ label: "Overview", to: "/" }, { label: "Sensor Nodes" }],
   "/data": [{ label: "Overview", to: "/" }, { label: "Data Logs" }],
   "/analysis": [{ label: "Overview", to: "/" }, { label: "ML Analysis" }],
@@ -20,7 +20,7 @@ function getBreadcrumbs(pathname) {
     return ROUTE_BREADCRUMBS[pathname];
   }
 
-  const nodeDetailMatch = /^\/(?:geospatial-status|locations)\/([^/]+)$/.exec(pathname);
+  const nodeDetailMatch = /^\/(?:field-map|locations)\/([^/]+)$/.exec(pathname);
   if (nodeDetailMatch) {
     const nodeSlug = nodeDetailMatch[1];
     const nodeLabel = nodeSlug

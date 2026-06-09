@@ -23,15 +23,12 @@ export default function AlertsPage() {
         </h3>
 
         <div className="space-y-4">
-          {node1.status === "offline" && <AlertItem type="critical" msg="Station 1 (Upstream) is offline. Check battery or cellular signal." />}
-          {node2.status === "offline" && <AlertItem type="warning" msg="Station 2 (Downstream) heartbeat weak. Last seen 15 mins ago." />}
+          {node1.status === "offline" && <AlertItem type="critical" msg="Station 1 (Upstream) - No recent data. Check battery or cellular signal." />}
+          {node2.status === "offline" && <AlertItem type="warning" msg="Station 2 (Downstream) - No recent data. Last seen 15 mins ago." />}
 
           {node1.status !== "offline" && node2.status !== "offline" && (
             <AlertItem type="normal" msg="All sensor nodes are online and reporting normally." />
           )}
-
-          <AlertItem type="normal" msg="Predictive Model: Stable. No flood risk projected." />
-          <AlertItem type="normal" msg="Cloud Sync: 100% Active. Firebase connection secured." />
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-300 bg-muted p-5 shadow-sm">

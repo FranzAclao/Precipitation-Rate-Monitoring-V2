@@ -18,14 +18,14 @@ export function NotificationButton({ node1, node2 }) {
     alerts.push({
       type: "critical",
       icon: Activity,
-      msg: "Station 1 (Upstream) is offline. Check battery or cellular signal.",
+      msg: "Station 1 (Upstream) - No recent data. Check battery or cellular signal.",
     });
   }
   if (node2?.status === "offline") {
     alerts.push({
       type: "warning",
       icon: Clock,
-      msg: "Station 2 (Downstream) heartbeat weak. Last seen 15 mins ago.",
+      msg: "Station 2 (Downstream) - No recent data. Last seen 15 mins ago.",
     });
   }
 
@@ -38,7 +38,7 @@ export function NotificationButton({ node1, node2 }) {
       >
         <Bell size={20} className="text-slate-700" />
         {hasAlerts && (
-          <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white font-bold shadow-lg animate-pulse">
+          <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white font-bold shadow-lg">
             {alertCount}
           </span>
         )}

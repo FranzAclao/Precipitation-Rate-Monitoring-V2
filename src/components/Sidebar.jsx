@@ -46,7 +46,7 @@ export function Sidebar({ activeView, node1, node2, lastUpdate }) {
     { icon: <Monitor size={18} />, label: "Monitoring Dashboard", path: "/dashboard", activeKey: "dashboard" },
     { icon: <MapIcon size={18} />, label: "Sensor Nodes", path: "/locations", activeKey: "locations" },
     { icon: <Database size={18} />, label: "Data Logs", path: "/data", activeKey: "data" },
-    { icon: <Brain size={18} />, label: "ML Analysis", path: "/analysis", activeKey: "analysis" },
+    // { icon: <Brain size={18} />, label: "ML Analysis", path: "/analysis", activeKey: "analysis" },
     { icon: <Bell size={18} />, label: "Alerts", path: "/alerts", activeKey: "alerts", badge: node1?.status === 'offline' || node2?.status === 'offline' ? "!" : null },
   ];
 

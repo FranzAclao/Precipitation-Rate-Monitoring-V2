@@ -35,7 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<OverviewPage />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="geospatial-status" element={<Dashboard />} />
+            <Route path="field-map" element={<Dashboard />} />
             <Route path="locations" element={<Dashboard />} />
             <Route path="data" element={<Dashboard />} />
             <Route path="analysis" element={<Dashboard />} />
